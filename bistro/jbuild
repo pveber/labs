@@ -1,0 +1,7 @@
+(jbuild_version 1)
+
+(library
+ ((name labs_bistro)
+  (public_name labs.bistro)
+  (libraries (bistro.bioinfo bistro.utils))
+))
