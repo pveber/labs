@@ -50,7 +50,7 @@ let rec to_app : type s. s t -> s App.t = function
   | List xs ->
     App.list (List.map ~f:to_app xs)
 
-let use t (Bistro.Workflow w) =
+let use t (Bistro.Any_workflow w) =
   App.(pure (fun x _ -> x) $ t $ pureW w)
 
 let save_html path doc =
