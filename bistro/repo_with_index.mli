@@ -7,6 +7,7 @@ val pure : 'a -> 'a t
 val pureW : Bistro.Path.t -> 'a Bistro.Std.workflow -> 'a path t
 val app : ('a -> 'b) t -> 'a t -> 'b t
 val ( $ ) : ('a -> 'b) t -> 'a t -> 'b t
+val list : 'a t list -> 'a list t
 
 val link :
   Bistro.Path.t ->
