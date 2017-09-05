@@ -21,3 +21,11 @@ val to_app :
   webroot:string ->
   precious:Bistro.any_workflow list ->
   unit Bistro_app.t
+
+module Syntax : sig
+  module Let_syntax : sig
+    type nonrec 'a t = 'a t
+    val map  : 'a t -> f:('a -> 'b) -> 'b t
+    val both : 'a t -> 'b t -> ('a * 'b) t
+  end
+end
