@@ -24,13 +24,11 @@ let ( $> ) x f = pure f $ x
 
 let list xs = List xs
 
-module Syntax = struct
-  module Let_syntax = struct
-    type nonrec 'a t = 'a t
-    let map x ~f = app (pure f) x
-    let both x y =
-      pure (fun x y -> x, y) $ x $ y
-  end
+module Let_syntax = struct
+  type nonrec 'a t = 'a t
+  let map x ~f = app (pure f) x
+  let both x y =
+    pure (fun x y -> x, y) $ x $ y
 end
 
 let link p w text =
