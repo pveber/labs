@@ -13,7 +13,7 @@ let bootstrap_head t =
 
 let make ~title:t contents =
   let open Tyxml_html in
-  html (bootstrap_head t) (body contents)
+  html (bootstrap_head t) (body [ div ~a:[a_class ["container"]] contents ])
 
 let to_file doc fn =
   Out_channel.with_file fn ~f:(fun oc ->
