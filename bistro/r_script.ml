@@ -11,17 +11,18 @@ let make xs = Template.(seq ~sep:"\n" xs)
 
 let source s = Template.string s
 
-let dest = Template.dest
+let dest = Template.(quote ~using:'"' dest)
 
-let tmp = Template.tmp
+let tmp = Template.(quote ~using:'"' tmp)
 
-let string s = Template.string s
+let string s =
+  Template.(quote ~using:'"' (string s))
 
 let int i = Template.int i
 
 let float f = Template.float f
 
-let dep w = Template.dep w
+let dep w = Template.(quote ~using:'"' (dep w))
 
 let call_gen fn arg xs  =
   let open Template in
@@ -37,8 +38,8 @@ let call fn args = call_gen fn Fn.id args
 let vector f xs = call_gen "c" f xs
 
 let floats xs = vector Template.float xs
-let strings xs = vector Template.string xs
-let deps xs = vector Template.dep xs
+let strings xs = vector string xs
+let deps xs = vector dep xs
 
 let arg ?l e =
   let open Template in
