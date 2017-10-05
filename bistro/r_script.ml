@@ -48,3 +48,6 @@ let arg ?l e =
   | Some label ->
     seq ~sep:"" [ string label ; string "=" ; e ]
 
+let assign var e =
+  let open Template in
+  seq ~sep:" " [ string var ; string "<-" ; e ]

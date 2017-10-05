@@ -19,3 +19,4 @@ val floats : float list -> expr
 val strings : string list -> expr
 val deps : _ workflow list -> expr
 val arg : ?l:string -> expr -> arg
+val assign : string -> expr -> expr
