@@ -6,9 +6,9 @@ let%bistro gff_of_bed bed =
     $$ bed_parser ()
     $$ map (function
         | (chr, start_pos, stop_pos, name :: _) ->
-          `record (
+          `Record (
             Gff.record
-              ~strand:`not_applicable
+              ~strand:`Not_stranded
               ~attributes:["gene_id", [name]]
               ~feature:"peak"
               chr start_pos stop_pos
