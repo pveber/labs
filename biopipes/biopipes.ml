@@ -28,6 +28,10 @@ let bed_parser () =
   lines ()
   $$ map (Bed.item_of_line %% Result.ok_or_failwith)
 
+let bed_unparser () =
+  map Bed.line_of_item
+  $$ lines_to_strings ()
+
 let gff3_parser () =
   lines ()
   $$ map (Gff.gff3_item_of_line %% ok_or_failwith)
