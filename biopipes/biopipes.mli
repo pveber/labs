@@ -7,5 +7,6 @@ include module type of Pipes_unix.Pipe
 val lines : unit -> (string, Line.t, unit) t
 val lines_to_strings : unit -> (Line.t, string, unit) t
 val bed_parser : unit -> (string, Bed.item, unit) t
+val gff3_parser : unit -> (string, Gff.item, unit) t
 val gff_unparser : [`two | `three] -> (Gff.item, string, unit) t
 
