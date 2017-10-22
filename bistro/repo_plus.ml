@@ -8,13 +8,13 @@ module H = Tyxml_html
 module Term = struct
   module App = Bistro_app
   module PathMap = Map.Make(Bistro.Path)
-  type env = Bistro.u PathMap.t
+  type env = Bistro.any_workflow PathMap.t
   type 'a t = 'a App.t * env
 
   let merge e1 e2 =
-    PathMap.merge e1 e2 ~f:(fun ~key -> function
-        | `Both (w1, w2) ->
-          if Bistro.U.(id w1 = id w2) then Some w1
+    PathMap.merge e1 e2 ~f:Bistro.(fun ~key -> function
+        | `Both (Any_workflow w1 as r, Any_workflow w2) ->
+          if Workflow.(id w1 = id w2) then Some r
           else
             failwithf
               "Same path for two different workflows: %s"
@@ -24,7 +24,7 @@ module Term = struct
       )
 
   let pure x = App.pure x, PathMap.empty
-  let pureW p w = App.pureW w, PathMap.singleton p (Bistro.Workflow.u w)
+  let pureW p w = App.pureW w, PathMap.singleton p (Bistro.Any_workflow w)
   let app (f, env_f) (x, env_x) =
     App.app f x, merge env_f env_x
   let ( $ ) = app
@@ -50,12 +50,12 @@ end
 
 type item =
   | Repo_item : string list * _ workflow -> item
-  | Repo_html_page : string list * Tyxml_html.doc Bistro_app.t -> item
+  | Repo_html_page : string list * Tyxml_html.doc Term.t -> item
 
 type t = item list
 
 let item p w = Repo_item (p, w)
-let html_page p (d, _) = Repo_html_page (p, d)
+let html_page p d = Repo_html_page (p, d)
 
 let add_prefix prefix items =
   List.map items ~f:(function
@@ -66,6 +66,7 @@ let add_prefix prefix items =
 let save_html path doc =
   let buf = Buffer.create 253 in
   let formatter = Format.formatter_of_buffer buf in
+  Unix.mkdir_p (Filename.dirname path) ;
   Tyxml_html.pp () formatter doc ;
   Out_channel.with_file path ~f:(fun oc ->
       let contents = Buffer.contents buf in
@@ -75,20 +76,25 @@ let save_html path doc =
 let to_app ?precious ~outdir items =
   let open Bistro_app in
   let normal_repo =
-    List.filter_map items ~f:(function
-        | Repo_html_page _ -> None
+    List.concat_map items ~f:(function
+        | Repo_html_page (_, (_, env)) ->
+          Map.to_alist env
+          |> List.map ~f:Bistro_repo.(fun (p, Bistro.Any_workflow w) -> p %> w)
         | Repo_item (p, w) ->
-          Some Bistro_repo.(p %> w)
+          Bistro_repo.[ p %> w ]
       )
   in
   let page_generation_term =
     List.filter_map items ~f:(function
         | Repo_item _ -> None
-        | Repo_html_page (p, d) ->
+        | Repo_html_page (p, (term,_)) ->
+          let dest =
+            Filename.concat outdir (Bistro.Path.to_string p)
+          in
           Some (
             pure save_html
-            $ pure (Bistro.Path.to_string p)
-            $ d
+            $ pure dest
+            $ term
           )
       )
     |> list
