@@ -37,6 +37,7 @@ let call fn args = call_gen fn Fn.id args
 
 let vector f xs = call_gen "c" f xs
 
+let ints xs = vector Template.int xs
 let floats xs = vector Template.float xs
 let strings xs = vector string xs
 let deps xs = vector dep xs
@@ -51,3 +52,8 @@ let arg ?l e =
 let assign var e =
   let open Template in
   seq ~sep:" " [ string var ; string "<-" ; e ]
+
+let workflow ?descr ?np ?mem ?env exprs =
+  EDSL.workflow ?descr ?np ?mem EDSL.[
+    cmd "Rscript" [ file_dump (make exprs) ] ;
+  ]
