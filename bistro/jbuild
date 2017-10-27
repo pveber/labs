@@ -3,6 +3,6 @@
 (library
  ((name labs_bistro)
   (public_name labs.bistro)
-  (libraries (biocaml.base labs.biopipes bistro.bioinfo bistro.utils))
+  (libraries (biocaml.base biocaml.ez bistro.bioinfo bistro.utils labs.biopipes labs.croquis))
   (preprocess (pps (ppx_let ppx_sexp_conv bistro.ppx)))
 ))

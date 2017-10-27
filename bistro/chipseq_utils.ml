@@ -1,3 +1,5 @@
+open Base
+
 let%bistro gff_of_bed bed =
   let open Biocaml_base in
   let open Labs_biopipes.Biopipes in
@@ -26,7 +28,8 @@ let%bistro tss_bed_of_gff ~upstream ~downstream gff =
     from_file [%dep gff]
     $$ gff3_parser ()
     $$ filter_map (function
-        | `Record { Gff.feature = Some "transcript" ; seqname ; start_pos ; stop_pos ; strand } ->
+        | `Record { Gff.feature = Some "mRNA" ;
+                    seqname ; start_pos ; stop_pos ; strand ; attributes } ->
           let start_pos, stop_pos =
             match strand with
             | `Plus -> start_pos - upstream, start_pos + downstream
@@ -34,7 +37,14 @@ let%bistro tss_bed_of_gff ~upstream ~downstream gff =
             | `Not_stranded
             | `Unknown -> assert false
           in
-          Some (seqname, start_pos, stop_pos, [])
+          let name =
+            match List.Assoc.find attributes "transcript_id" ~equal:String.equal with
+            | Some [ tid ] -> tid
+            | Some (_ :: _) -> failwith "Unexpected multiple values for transcript id"
+            | Some []
+            | None -> failwith "Missing value for transcript id"
+          in
+          Some (seqname, start_pos, stop_pos, [ name ])
         | _ -> None
       )
     $$ bed_unparser ()

@@ -6,4 +6,4 @@ val tss_bed_of_gff :
   upstream:int ->
   downstream:int ->
   gff workflow ->
-  bed3 workflow
+  bed4 workflow
