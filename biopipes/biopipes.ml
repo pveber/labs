@@ -40,3 +40,11 @@ let gff3_parser () =
 let gff_unparser version =
   map (Gff.line_of_item version)
   $$ lines_to_strings ()
+
+let table_parser () =
+  lines ()
+  $$ map (Line.split ~on:'\t')
+
+let table_unparser () =
+  map (fun fields -> Line.of_string_unsafe (String.concat ~sep:"\t" fields))
+  $$ lines_to_strings ()
