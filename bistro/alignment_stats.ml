@@ -2,7 +2,7 @@ open Core_kernel
 open Bistro.Std
 open Bistro_bioinfo.Std
 
-let%bistro bamstats (bam : bam workflow) =
+let%bistro[@version 2] bamstats (bam : bam workflow) =
   let open Biocaml_ez in
   let open CFStream in
   Bam.with_file [%dep bam] ~f:(fun _ als ->
@@ -81,8 +81,11 @@ let%bistro summary samples bamstats chrstats =
   in
   let flagstat_table samples stats =
     let fraction n k =
-      sprintf "%d (%.1f%%)" k Float.(of_int k / of_int n * 100.)
-      |> pcdata
+      let f =
+        if n <= 0 then 0.
+        else Float.(of_int k / of_int n * 100.)
+      in
+      pcdata (sprintf "%d (%.1f%%)" k f)
     in
     let header =
       thead [
@@ -90,6 +93,7 @@ let%bistro summary samples bamstats chrstats =
           th [k "Sample"] ;
           th [k "Total"] ;
           th [k "QC pass"] ;
+          th [k "Mapped reads"] ;
           th [k "Read pairs"] ;
           th [k "Mapped pairs"] ;
         ]
@@ -98,11 +102,13 @@ let%bistro summary samples bamstats chrstats =
     let line sample { Bamstats.total ;
                       qc_pass ;
                       read_pairs ;
+                      mapped_reads ;
                       mapped_pairs } =
       tr [
         td [ k sample ] ;
         td [ k Int.(to_string total) ] ;
         td [ fraction total qc_pass ] ;
+        td [ fraction total mapped_reads ] ;
         td [ k Int.(to_string read_pairs) ] ;
         td [ fraction read_pairs mapped_pairs ] ;
       ]
