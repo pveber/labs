@@ -69,7 +69,7 @@ let%bistro summary samples bamstats chrstats =
       in
       let line sample stats =
         let n = List.fold stats ~init:0 ~f:(fun acc (_, n) -> acc + n) in
-        let cols = List.map stats ~f:(fun (chr, k) ->
+        let cols = List.map stats ~f:(fun (_, k) ->
             let p = Float.(of_int k / of_int n *. 100.) in
             td [ pcdata (sprintf "%.1f%%" p) ] ;
           )
@@ -103,7 +103,7 @@ let%bistro summary samples bamstats chrstats =
                       qc_pass ;
                       read_pairs ;
                       mapped_reads ;
-                      mapped_pairs } =
+                      mapped_pairs ; _ } =
       tr [
         td [ k sample ] ;
         td [ k Int.(to_string total) ] ;

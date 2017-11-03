@@ -1,15 +1,13 @@
 open Core
 open Bistro.Std
 open Bistro_utils
-open Bistro_engine
 
 module H = Tyxml_html
 
-module Term = struct
-  module App = Bistro_app
+module Term_plus = struct
   module PathMap = Map.Make(Bistro.Path)
   type env = Bistro.any_workflow PathMap.t
-  type 'a t = 'a App.t * env
+  type 'a t = 'a Term.t * env
 
   let merge e1 e2 =
     PathMap.merge e1 e2 ~f:Bistro.(fun ~key -> function
@@ -23,20 +21,20 @@ module Term = struct
         | `Right w -> Some w
       )
 
-  let pure x = App.pure x, PathMap.empty
-  let pureW p w = App.pureW w, PathMap.singleton p (Bistro.Any_workflow w)
+  let pure x = Term.pure x, PathMap.empty
+  let pureW p w = Term.pureW w, PathMap.singleton p (Bistro.Any_workflow w)
   let app (f, env_f) (x, env_x) =
-    App.app f x, merge env_f env_x
+    Term.app f x, merge env_f env_x
   let ( $ ) = app
   let ( $> ) x f = pure f $ x
   let list xs =
     let terms, envs = List.unzip xs in
-    App.list terms, List.fold envs ~init:PathMap.empty ~f:merge
+    Term.list terms, List.fold envs ~init:PathMap.empty ~f:merge
 
   let link p w text =
     let url = Bistro.Path.to_string p in
     pureW p w
-    $> fun (Path p) -> H.(
+    $> fun (Path _) -> H.(
         a ~a:[a_href url] [ pcdata text ]
       )
 
@@ -50,7 +48,7 @@ end
 
 type item =
   | Repo_item : string list * _ workflow -> item
-  | Repo_html_page : string list * Tyxml_html.doc Term.t -> item
+  | Repo_html_page : string list * Tyxml_html.doc Term_plus.t -> item
 
 type t = item list
 
@@ -73,15 +71,15 @@ let save_html path doc =
       Out_channel.output_string oc contents
     )
 
-let to_app ?precious ~outdir items =
-  let open Bistro_app in
+let to_term ?precious ~outdir items =
+  let open Term in
   let normal_repo =
     List.concat_map items ~f:(function
         | Repo_html_page (_, (_, env)) ->
           Map.to_alist env
-          |> List.map ~f:Bistro_repo.(fun (p, Bistro.Any_workflow w) -> p %> w)
+          |> List.map ~f:Repo.(fun (p, Bistro.Any_workflow w) -> p %> w)
         | Repo_item (p, w) ->
-          Bistro_repo.[ p %> w ]
+          Repo.[ p %> w ]
       )
   in
   let page_generation_term =
@@ -100,5 +98,5 @@ let to_app ?precious ~outdir items =
     |> list
   in
   pure (fun () _ -> ())
-  $ Bistro_repo.to_app ?precious ~outdir normal_repo
+  $ Repo.to_term ?precious ~outdir normal_repo
   $ page_generation_term

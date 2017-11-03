@@ -4,11 +4,11 @@ open Bistro_utils
 type item
 type t = item list
 
-module Term : sig
+module Term_plus : sig
   type 'a t
 
   val pure : 'a -> 'a t
-  val pureW : Bistro.Path.t -> 'a Bistro.Std.workflow -> 'a Bistro_app.path t
+  val pureW : Bistro.Path.t -> 'a Bistro.Std.workflow -> 'a Term.path t
   val app : ('a -> 'b) t -> 'a t -> 'b t
   val ( $ ) : ('a -> 'b) t -> 'a t -> 'b t
   val list : 'a t list -> 'a list t
@@ -27,12 +27,12 @@ module Term : sig
 end
 
 val item : string list -> _ workflow -> item
-val html_page : string list -> Tyxml_html.doc Term.t -> item
+val html_page : string list -> Tyxml_html.doc Term_plus.t -> item
 
 val add_prefix : string list -> t -> t
 
-val to_app :
+val to_term :
   ?precious:Bistro.any_workflow list ->
   outdir:string ->
   t ->
-  unit Bistro_app.t
+  unit Term.t

@@ -15,12 +15,12 @@ val link :
   string ->
   [> `A of [> `PCDATA ] ] Tyxml_html.elt t
 
-val to_app :
+val to_term :
   Tyxml_html.doc t ->
   outdir:string ->
   webroot:string ->
   precious:Bistro.any_workflow list ->
-  unit Bistro_app.t
+  unit Term.t
 
 module Let_syntax : sig
   type nonrec 'a t = 'a t

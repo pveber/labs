@@ -1,5 +1,4 @@
 open Bistro.Std
-open Bistro_bioinfo.Std
 
 val docker_image : docker_image
 

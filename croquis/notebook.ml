@@ -36,20 +36,20 @@ let saveplot format f =
   Svg (sprintf "data:image/%s;base64,%s" format contents)
 
 
-let vgplot f =
-  let open Gg in
-  let open Vg in
-  saveplot `svg (fun tmp ->
-      let size = Size2.v 100. 100. in
-      let view = Box2.v P2.o (Size2.v 1. 1.) in
-      let image = f () in
-      let xmp = Vgr.xmp () in
-      Out_channel.with_file tmp ~f:(fun oc ->
-          let r = Vgr.create (Vgr_svg.target ~xmp ()) (`Channel oc) in
-          ignore (Vgr.render r (`Image (size, view, image)));
-          ignore (Vgr.render r `End)
-        )
-    )
+(* let vgplot f = *)
+(*   let open Gg in *)
+(*   let open Vg in *)
+(*   saveplot `svg (fun tmp -> *)
+(*       let size = Size2.v 100. 100. in *)
+(*       let view = Box2.v P2.o (Size2.v 1. 1.) in *)
+(*       let image = f () in *)
+(*       let xmp = Vgr.xmp () in *)
+(*       Out_channel.with_file tmp ~f:(fun oc -> *)
+(*           let r = Vgr.create (Vgr_svg.target ~xmp ()) (`Channel oc) in *)
+(*           ignore (Vgr.render r (`Image (size, view, image))); *)
+(*           ignore (Vgr.render r `End) *)
+(*         ) *)
+(*     ) *)
 
 let vgplot_png f =
   let open Gg in

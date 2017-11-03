@@ -1,11 +1,10 @@
 open Bistro_utils
 open Bistro.Std
-open Bistro_bioinfo.Std
 
 let with_workflow w ~f =
-  let open Bistro_app in
+  let open Term in
   run ~keep_all:true ~np:8 ~mem:(`GB 8) (
-    pure (fun (Bistro_app.Path p) -> f p) $ pureW w
+    pure (fun (Term.Path p) -> f p) $ pureW w
   )
 
 let path w =

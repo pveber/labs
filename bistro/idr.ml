@@ -39,6 +39,7 @@ let idr
       option (opt "--idr-threshold" float) idr_threshold ;
       option (opt "--soft-idr-threshold" float) soft_idr_threshold ;
       option (opt "--peak-merge-method" merge_method) peak_merge_method ;
+      option (opt "--randome-seed" int) random_seed ;
       string "--plot" ;
       opt "--samples" (list ~sep:" " dep) samples ;
     ]

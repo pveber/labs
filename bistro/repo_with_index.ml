@@ -1,8 +1,8 @@
 open Core_kernel
 open Bistro.Std
 
-module App = Bistro_utils.Bistro_app
-module Repo = Bistro_utils.Bistro_repo
+module Term = Bistro_utils.Term
+module Repo = Bistro_utils.Repo
 module H = Tyxml_html
 
 type 'a path = Path of string list
@@ -34,7 +34,7 @@ end
 let link p w text =
   let url = Bistro.Path.to_string p in
   pureW p w
-  $> fun (Path p) -> H.(
+  $> fun (Path _) -> H.(
       a ~a:[a_href url] [ pcdata text ]
     )
 
@@ -48,17 +48,17 @@ let rec to_bistro_repo : type s. Repo.t -> s t -> Repo.t = fun accu -> function
   | List xs -> List.fold_left ~f:to_bistro_repo ~init:accu xs
 
 
-let rec to_app : type s. s t -> s App.t = function
-  | Pure x -> App.pure x
+let rec to_term : type s. s t -> s Term.t = function
+  | Pure x -> Term.pure x
   | PureW (p, w) ->
     let p = Path p in
-    App.(pure (fun _ -> p) $ pureW w)
-  | App (f, x) -> App.app (to_app f) (to_app x)
+    Term.(pure (fun _ -> p) $ pureW w)
+  | App (f, x) -> Term.app (to_term f) (to_term x)
   | List xs ->
-    App.list (List.map ~f:to_app xs)
+    Term.list (List.map ~f:to_term xs)
 
 let use t (Bistro.Any_workflow w) =
-  App.(pure (fun x _ -> x) $ t $ pureW w)
+  Term.(pure (fun x _ -> x) $ t $ pureW w)
 
 let save_html path doc =
   let buf = Buffer.create 253 in
@@ -69,12 +69,12 @@ let save_html path doc =
       Out_channel.output_string oc contents
     )
 
-let to_app repo ~outdir ~webroot ~precious =
-  let y = Repo.to_app ~outdir (to_bistro_repo [] repo) in
+let to_term repo ~outdir ~webroot:_ ~precious =
+  let y = Repo.to_term ~outdir (to_bistro_repo [] repo) in
   let g () html =
     save_html
       (Filename.concat outdir "index.html")
       html
  in
- App.(pure g $ y $ (to_app repo))
+ Term.(pure g $ y $ (to_term repo))
  |> fun init -> List.fold precious ~init ~f:use

@@ -1,3 +1,7 @@
+(** Note: I experienced problems with this program, namely that often
+    the produced fastq file has incorrect syntax (reads that are
+    shorter than the quality read. *)
+
 open Bistro.Std
 open Bistro_bioinfo.Std
 

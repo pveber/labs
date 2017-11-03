@@ -55,5 +55,5 @@ let assign var e =
 
 let workflow ?descr ?np ?mem ?env exprs =
   EDSL.workflow ?descr ?np ?mem EDSL.[
-    cmd "Rscript" [ file_dump (make exprs) ] ;
+    cmd "Rscript" ?env [ file_dump (make exprs) ] ;
   ]

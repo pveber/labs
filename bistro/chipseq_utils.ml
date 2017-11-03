@@ -29,7 +29,7 @@ let%bistro tss_bed_of_gff ~upstream ~downstream gff =
     $$ gff3_parser ()
     $$ filter_map (function
         | `Record { Gff.feature = Some "mRNA" ;
-                    seqname ; start_pos ; stop_pos ; strand ; attributes } ->
+                    seqname ; start_pos ; stop_pos ; strand ; attributes ; _ } ->
           let start_pos, stop_pos =
             match strand with
             | `Plus -> start_pos - upstream, start_pos + downstream
