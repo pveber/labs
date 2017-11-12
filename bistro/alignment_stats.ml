@@ -46,11 +46,16 @@ let%bistro summary samples bamstats chrstats =
       |> Bamstats.t_of_sexp
     )
   in
-  let chrstats = List.map [%deps chrstats] ~f:(fun fn ->
-      In_channel.read_all fn
-      |> Sexp.of_string
-      |> [%of_sexp: (string * int) list]
-    )
+  let chrstats = match [%deps chrstats] with
+    | [] -> None
+    | xs ->
+      Some (
+        List.map xs ~f:(fun fn ->
+            In_channel.read_all fn
+            |> Sexp.of_string
+            |> [%of_sexp: (string * int) list]
+          )
+      )
   in
   let chrstat_table samples = function
     | [] -> raise (Invalid_argument "chrstat_table: needs at least one sample")
@@ -119,7 +124,7 @@ let%bistro summary samples bamstats chrstats =
   let contents = [
     flagstat_table samples stats ;
     br () ;
-    chrstat_table samples chrstats ;
+    Option.value_map chrstats ~default:(pcdata "") ~f:(chrstat_table samples) ;
   ]
   in
   Labs_croquis.Html_page.(
