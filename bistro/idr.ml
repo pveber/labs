@@ -29,7 +29,7 @@ let env = docker_image ~account:"pveber" ~name:"idr" ~tag:"2.0.3" ()
 
 let idr
     ~input_file_type ?idr_threshold ?soft_idr_threshold
-    ?peak_merge_method ?random_seed
+    ?peak_merge_method ?random_seed ?peak_list
     samples =
   workflow ~descr:"Idr.idr" [
     mkdir_p dest ;
@@ -39,7 +39,8 @@ let idr
       option (opt "--idr-threshold" float) idr_threshold ;
       option (opt "--soft-idr-threshold" float) soft_idr_threshold ;
       option (opt "--peak-merge-method" merge_method) peak_merge_method ;
-      option (opt "--randome-seed" int) random_seed ;
+      option (opt "--random-seed" int) random_seed ;
+      option (opt "--peak-list" dep) peak_list ;
       string "--plot" ;
       opt "--samples" (list ~sep:" " dep) samples ;
     ]

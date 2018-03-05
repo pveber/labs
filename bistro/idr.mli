@@ -16,6 +16,7 @@ val idr :
   ?soft_idr_threshold:float ->
   ?peak_merge_method:[ `sum | `avg | `min | `max] ->
   ?random_seed:int ->
+  ?peak_list:'a workflow ->
   'a workflow list ->
   output directory workflow
 
