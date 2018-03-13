@@ -18,3 +18,4 @@ val featureCounts :
   [`featureCounts] directory workflow
 
 val featureCounts_tsv : ([`featureCounts], count_table) selector
+val featureCounts_summary : ([`featureCounts], text_file) selector

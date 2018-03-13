@@ -34,3 +34,4 @@ let featureCounts
   ]
 
 let featureCounts_tsv = selector ["counts.tsv"]
+let featureCounts_summary = selector ["counts.tsv.summary"]
