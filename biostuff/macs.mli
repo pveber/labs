@@ -15,6 +15,7 @@ module Xls : sig
       tags : int ;
       pvalue : float ;
       fold : float ;
+      fdr : float option ;
   }
 
   type item = [

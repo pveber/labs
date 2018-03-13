@@ -12,6 +12,7 @@ module Xls = struct
       tags : int ;
       pvalue : float ;
       fold : float ;
+      fdr : float option ;
   }
 
   type item = [
@@ -20,42 +21,57 @@ module Xls = struct
     | `Header
   ]
 
-  let header =
+  let header_prefix =
     "chr\tstart\tend\tlength\tsummit\ttags\t-10*log10(pvalue)\tfold_enrichment"
+  (* the header changes if there is a control, there is an additional FDR column *)
 
   let parse line =
+    let fail () =
+      failwithf "Macs.Xls.parse failed: %s" (line : Line.t :> string) ()
+    in
     match (line : Line.t :> string) with
     | "" -> `Comment ""
-    | line when line = header -> `Header
+    | line when String.is_prefix line ~prefix:header_prefix ->
+      `Header
     | line ->
       if line.[0] = '#' then `Comment (String.slice line 1 0)
-      else
+      else (
         match String.split ~on:'\t' line with
-        | [ seqid ; pos_start ; pos_end ; length ;
-            summit ; tags ; pvalue ; fold ] ->
-            `Record { seqid ;
-                  pos_start = Int.of_string pos_start ;
-                  pos_end = Int.of_string pos_end ;
-                  length = Int.of_string length ;
-                  summit = Int.of_string summit ;
-                  tags = Int.of_string tags ;
-                  pvalue = Float.of_string pvalue ;
-                  fold = Float.of_string fold ; }
-    | _ -> assert false
+        | seqid :: pos_start :: pos_end :: length ::
+          summit :: tags :: pvalue :: fold :: maybe_fdr ->
+          let fdr = match maybe_fdr with
+            | [] -> None
+            | [ fdr ] -> Some (Float.of_string fdr)
+            | _ -> fail ()
+          in
+          `Record {
+            seqid ;
+            pos_start = Int.of_string pos_start ;
+            pos_end = Int.of_string pos_end ;
+            length = Int.of_string length ;
+            summit = Int.of_string summit ;
+            tags = Int.of_string tags ;
+            pvalue = Float.of_string pvalue ;
+            fold = Float.of_string fold ;
+            fdr
+          }
+        | _ -> fail ()
+      )
 
   let unparse = function
     | `Comment "" -> ""
     | `Comment c -> sprintf "#%s\n" c
-    | `Header -> header ^ "\n"
+    | `Header -> header_prefix ^ "\n" (* FIXME: should add FDR column header if told to do so *)
     | `Record r ->
-      sprintf "%s\n"
-        (String.concat ~sep:"\t" [
-            r.seqid ; sprintf "%d" r.pos_start ; sprintf "%d" r.pos_end ;
-            sprintf "%d" r.length ; sprintf "%d" r.summit ;
-            sprintf "%d" r.tags ; sprintf "%g" r.pvalue ;
-            sprintf "%g" r.fold ;
-          ]
+      sprintf "%s\n" (
+        String.concat ~sep:"\t" (
+          r.seqid :: sprintf "%d" r.pos_start :: sprintf "%d" r.pos_end ::
+          sprintf "%d" r.length :: sprintf "%d" r.summit ::
+          sprintf "%d" r.tags :: sprintf "%g" r.pvalue ::
+          sprintf "%g" r.fold ::
+          Option.value_map r.fdr ~default:[] ~f:(fun x -> [ sprintf "%g" x ])
         )
+      )
     | _ -> assert false
 
   (* let summits_to_bed5 = function
