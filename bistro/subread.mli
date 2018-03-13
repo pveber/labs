@@ -9,7 +9,12 @@ class type count_table = object
 end
 
 val featureCounts :
+  ?feature_type:string ->
+  ?attribute_type:string ->
+  ?strandness:[`Unstranded | `Stranded | `Reversely_stranded] ->
+  ?nthreads:int ->
   gff workflow ->
   < format : [< `bam | `sam] ; .. > workflow -> (*FIXME: handle paired-hand, just add other file next to the other*)
-  count_table workflow
+  [`featureCounts] directory workflow
 
+val featureCounts_tsv : ([`featureCounts], count_table) selector
