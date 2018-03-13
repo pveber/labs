@@ -3,3 +3,5 @@ type t = {
   st : int ;
   ed : int ;
 } [@@deriving compare]
+
+val to_string : t -> string
