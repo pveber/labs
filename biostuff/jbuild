@@ -1,0 +1,8 @@
+(jbuild_version 1)
+
+(library
+ ((name labs_biostuff)
+  (public_name labs.biostuff)
+  (libraries (biocaml.base biocaml.unix core))
+  (preprocess (pps (ppx_compare)))
+))
