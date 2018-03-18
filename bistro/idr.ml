@@ -7,7 +7,7 @@ let broadPeak = BroadPeak
 let bed = Bed
 let gff = Gff
 
-type output = [`idr_output]
+type 'a output = [`idr_output of 'a]
 
 let string_of_file_format = function
   | NarrowPeak -> "narrowPeak"

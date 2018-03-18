@@ -8,7 +8,7 @@ val broadPeak : Macs2.broad_peaks format
 val bed : bed3 format
 val gff : gff format
 
-type output = [`idr_output]
+type 'a output = [`idr_output of 'a]
 
 val idr :
   input_file_type:'a format ->
@@ -18,7 +18,7 @@ val idr :
   ?random_seed:int ->
   ?peak_list:'a workflow ->
   'a workflow list ->
-  output directory workflow
+  'a output directory workflow
 
-val items : (output, bed5) selector
-val figure : (output, png) selector
+val items : ('a output, 'a) selector
+val figure : (_ output, png) selector
