@@ -5,6 +5,14 @@ type 'a item = [
   | `Record of 'a
 ]
 
+type strand = [
+  | `Plus
+  | `Minus
+  | `Not_relevant
+  | `Unknown
+]
+val parse_strand : string -> (strand, string) result
+
 module Bed3 : sig
   type t = {
     chrom : string ;
@@ -46,6 +54,6 @@ module Bed6 : sig
     chromEnd : int ;
     name : string ;
     score : float ;
-    strand : [ `Plus | `Minus | `Not_relevant | `Unknown ] ;
+    strand : strand ;
   }
 end

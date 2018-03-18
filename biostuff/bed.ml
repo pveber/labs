@@ -7,12 +7,19 @@ type 'a item = [
   | `Record of 'a
 ]
 
+type strand = [
+  | `Plus
+  | `Minus
+  | `Not_relevant
+  | `Unknown
+]
+
 let parse_strand = function
-  | "." -> `Not_relevant
-  | "?" -> `Unknown
-  | "+" -> `Plus
-  | "-" -> `Minus
-  | _ -> assert false
+  | "." -> Ok `Not_relevant
+  | "?" -> Ok `Unknown
+  | "+" -> Ok `Plus
+  | "-" -> Ok `Minus
+  | s -> Error s
 
 let parse_item f line =
   match (line : Line.t :> string) with
@@ -127,7 +134,7 @@ module Bed6 = struct
     chromEnd : int ;
     name : string ;
     score : float ;
-    strand : [ `Plus | `Minus | `Not_relevant | `Unknown ] ;
+    strand : strand ;
   }
 
   let from_fields = function
@@ -137,7 +144,11 @@ module Bed6 = struct
         chromEnd = Int.of_string chromEnd ;
         name ;
         score = Float.of_string score ;
-        strand = parse_strand strand
+        strand = (
+          match parse_strand strand with
+          | Ok s -> s
+          | Error msg -> failwith msg
+        ) ;
       }
     | _ -> assert false
 
