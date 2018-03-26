@@ -37,132 +37,155 @@ let unparse_item f = function
       sprintf "%s\n"
         (String.concat ~sep:"\t" (f r))
 
-(* module type Variant = sig
- *   type t
- *   val parse : Line.t -> t item
- *   val reader : (Line.t, t item, unit) Pipe.t
- *   val unparse : t item -> string
- *   val writer : (t item, string, unit) Pipe.t
- * end *)
+module type Base = sig
+  type t
+  val from_fields : string list -> t
+  val to_fields : t -> string list
+end
+
+module type S = sig
+  type t
+  val loc : t -> GLoc.t
+  val of_line : Line.t -> t item
+  val to_line : t item -> string
+  val load : string -> t item list
+end
+
+module Make(T : Base) = struct
+  let of_line = parse_item T.from_fields
+  let to_line = unparse_item T.to_fields
+
+  let load fn =
+    In_channel.read_lines fn
+    |> List.map ~f:(fun l -> of_line (Line.of_string_unsafe l))
+end
 
 module Bed3 = struct
-  type t = {
-    chrom : string ;
-    chromStart : int ;
-    chromEnd : int ;
-  }
+  module Base = struct
+    type t = {
+      chrom : string ;
+      chromStart : int ;
+      chromEnd : int ;
+    }
 
-  let from_fields = function
-    | [ chrom ; chromStart ; chromEnd ] ->
-      { chrom ;
-        chromStart = Int.of_string chromStart ;
-        chromEnd = Int.of_string chromEnd ;
-      }
-    | _ -> assert false
+    let loc r = GLoc.{ chr = r.chrom ; st = r.chromStart ; ed = r.chromEnd }
 
-  let to_fields r = [
-    r.chrom ; sprintf "%d" r.chromStart ; sprintf "%d" r.chromEnd
-  ]
+    let from_fields = function
+      | [ chrom ; chromStart ; chromEnd ] ->
+        { chrom ;
+          chromStart = Int.of_string chromStart ;
+          chromEnd = Int.of_string chromEnd ;
+        }
+      | _ -> assert false
 
-  let parse = parse_item from_fields
-  let unparse = unparse_item to_fields
+    let to_fields r = [
+      r.chrom ; sprintf "%d" r.chromStart ; sprintf "%d" r.chromEnd
+    ]
+  end
+  include Base
+  include Make(Base)
 end
 
 module Bed4 = struct
-  type t = {
-    chrom : string ;
-    chromStart : int ;
-    chromEnd : int ;
-    name : string ;
-  }
+  module Base = struct
+    type t = {
+      chrom : string ;
+      chromStart : int ;
+      chromEnd : int ;
+      name : string ;
+    }
 
-  let from_fields = function
-    | [ chrom ; chromStart ; chromEnd ; name ] ->
-      { chrom ;
-        chromStart = Int.of_string chromStart ;
-        chromEnd = Int.of_string chromEnd ;
-        name }
-    | _ -> assert false
+    let loc r = GLoc.{ chr = r.chrom ; st = r.chromStart ; ed = r.chromEnd }
 
-  let to_fields r = [
-    r.chrom ; sprintf "%d" r.chromStart ; sprintf "%d" r.chromEnd ; r.name
-  ]
+    let from_fields = function
+      | [ chrom ; chromStart ; chromEnd ; name ] ->
+        { chrom ;
+          chromStart = Int.of_string chromStart ;
+          chromEnd = Int.of_string chromEnd ;
+          name }
+      | _ -> assert false
 
-
-  let parse = parse_item from_fields
-  let unparse = unparse_item to_fields
+    let to_fields r = [
+      r.chrom ; sprintf "%d" r.chromStart ; sprintf "%d" r.chromEnd ; r.name
+    ]
+  end
+  include Base
+  include Make(Base)
 end
 
 module Bed5 = struct
-  type t = {
-    chrom : string ;
-    chromStart : int ;
-    chromEnd : int ;
-    name : string ;
-    score : float ;
-  }
+  module Base = struct
+    type t = {
+      chrom : string ;
+      chromStart : int ;
+      chromEnd : int ;
+      name : string ;
+      score : float ;
+    }
 
-  let from_fields = function
-    | [ chrom ; chromStart ; chromEnd ; name ; score ] ->
-      { chrom ;
-        chromStart = Int.of_string chromStart ;
-        chromEnd = Int.of_string chromEnd ;
-        name ; score = Float.of_string score }
-    | _ -> assert false
+    let loc r = GLoc.{ chr = r.chrom ; st = r.chromStart ; ed = r.chromEnd }
 
-  let to_fields r = [
-    r.chrom ; sprintf "%d" r.chromStart ; sprintf "%d" r.chromEnd ;
-    r.name ; sprintf "%g" r.score
-  ]
+    let from_fields = function
+      | [ chrom ; chromStart ; chromEnd ; name ; score ] ->
+        { chrom ;
+          chromStart = Int.of_string chromStart ;
+          chromEnd = Int.of_string chromEnd ;
+          name ; score = Float.of_string score }
+      | _ -> assert false
+
+    let to_fields r = [
+      r.chrom ; sprintf "%d" r.chromStart ; sprintf "%d" r.chromEnd ;
+      r.name ; sprintf "%g" r.score
+    ]
+  end
+  include Base
+  include Make(Base)
 
   let to_bed4 = function
     | `Comment c -> `Comment c
     | `Record r ->
       `Record { Bed4.chrom = r.chrom ; chromStart = r.chromStart ;
                 chromEnd = r.chromEnd ; name = r.name }
-
-
-  let parse = parse_item from_fields
-  let unparse = unparse_item to_fields
-
 end
 
 module Bed6 = struct
-  type t = {
-    chrom : string ;
-    chromStart : int ;
-    chromEnd : int ;
-    name : string ;
-    score : float ;
-    strand : strand ;
-  }
+  module Base = struct
+    type t = {
+      chrom : string ;
+      chromStart : int ;
+      chromEnd : int ;
+      name : string ;
+      score : float ;
+      strand : strand ;
+    }
 
-  let from_fields = function
-    | [ chrom ; chromStart ; chromEnd ; name ; score ; strand ] ->
-      { chrom ;
-        chromStart = Int.of_string chromStart ;
-        chromEnd = Int.of_string chromEnd ;
-        name ;
-        score = Float.of_string score ;
-        strand = (
-          match parse_strand strand with
-          | Ok s -> s
-          | Error msg -> failwith msg
-        ) ;
-      }
-    | _ -> assert false
+    let loc r = GLoc.{ chr = r.chrom ; st = r.chromStart ; ed = r.chromEnd }
 
-  let to_fields r = [
-    r.chrom ; sprintf "%d" r.chromStart ; sprintf "%d" r.chromEnd ;
-    r.name ; sprintf "%g" r.score ;
-    (match r.strand with
-     | `Not_relevant -> "."
-     | `Unknown -> "?"
-     | `Plus -> "+"
-     | `Minus -> "-" )
-  ]
+    let from_fields = function
+      | [ chrom ; chromStart ; chromEnd ; name ; score ; strand ] ->
+        { chrom ;
+          chromStart = Int.of_string chromStart ;
+          chromEnd = Int.of_string chromEnd ;
+          name ;
+          score = Float.of_string score ;
+          strand = (
+            match parse_strand strand with
+            | Ok s -> s
+            | Error msg -> failwith msg
+          ) ;
+        }
+      | _ -> assert false
 
-  let parse = parse_item from_fields
-  let unparse = unparse_item to_fields
-
+    let to_fields r = [
+      r.chrom ; sprintf "%d" r.chromStart ; sprintf "%d" r.chromEnd ;
+      r.name ; sprintf "%g" r.score ;
+      (match r.strand with
+       | `Not_relevant -> "."
+       | `Unknown -> "?"
+       | `Plus -> "+"
+       | `Minus -> "-" )
+    ]
+  end
+  include Base
+  include Make(Base)
 end

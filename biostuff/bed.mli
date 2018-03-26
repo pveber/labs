@@ -13,15 +13,23 @@ type strand = [
 ]
 val parse_strand : string -> (strand, string) result
 
+module type S = sig
+  type t
+  val loc : t -> GLoc.t
+  val of_line : Line.t -> t item
+  val to_line : t item -> string
+  val load : string -> t item list
+end
+
 module Bed3 : sig
   type t = {
     chrom : string ;
     chromStart : int ;
     chromEnd : int ;
   }
-  val parse : Line.t -> t item
-  val unparse : t item -> string
+  include S with type t := t
 end
+
 
 module Bed4 : sig
   type t = {
@@ -30,8 +38,7 @@ module Bed4 : sig
     chromEnd : int ;
     name : string ;
   }
-  val parse : Line.t -> t item
-  val unparse : t item -> string
+  include S with type t := t
 end
 
 module Bed5 : sig
@@ -42,8 +49,7 @@ module Bed5 : sig
     name : string ;
     score : float ;
   }
-  val parse : Line.t -> t item
-  val unparse : t item -> string
+  include S with type t := t
   val to_bed4 : t item -> Bed4.t item
 end
 
@@ -56,4 +62,5 @@ module Bed6 : sig
     score : float ;
     strand : strand ;
   }
+  include S with type t := t
 end
