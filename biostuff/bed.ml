@@ -71,7 +71,7 @@ module Bed3 = struct
     let loc r = GLoc.{ chr = r.chrom ; st = r.chromStart ; ed = r.chromEnd }
 
     let from_fields = function
-      | [ chrom ; chromStart ; chromEnd ] ->
+      | chrom :: chromStart :: chromEnd :: _ ->
         { chrom ;
           chromStart = Int.of_string chromStart ;
           chromEnd = Int.of_string chromEnd ;
@@ -98,7 +98,7 @@ module Bed4 = struct
     let loc r = GLoc.{ chr = r.chrom ; st = r.chromStart ; ed = r.chromEnd }
 
     let from_fields = function
-      | [ chrom ; chromStart ; chromEnd ; name ] ->
+      | chrom :: chromStart :: chromEnd :: name :: _ ->
         { chrom ;
           chromStart = Int.of_string chromStart ;
           chromEnd = Int.of_string chromEnd ;
@@ -126,7 +126,7 @@ module Bed5 = struct
     let loc r = GLoc.{ chr = r.chrom ; st = r.chromStart ; ed = r.chromEnd }
 
     let from_fields = function
-      | [ chrom ; chromStart ; chromEnd ; name ; score ] ->
+      | chrom :: chromStart :: chromEnd :: name :: score :: _ ->
         { chrom ;
           chromStart = Int.of_string chromStart ;
           chromEnd = Int.of_string chromEnd ;
@@ -162,7 +162,7 @@ module Bed6 = struct
     let loc r = GLoc.{ chr = r.chrom ; st = r.chromStart ; ed = r.chromEnd }
 
     let from_fields = function
-      | [ chrom ; chromStart ; chromEnd ; name ; score ; strand ] ->
+      | chrom :: chromStart :: chromEnd :: name :: score :: strand :: _ ->
         { chrom ;
           chromStart = Int.of_string chromStart ;
           chromEnd = Int.of_string chromEnd ;
