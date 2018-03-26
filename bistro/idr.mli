@@ -17,7 +17,8 @@ val idr :
   ?peak_merge_method:[ `sum | `avg | `min | `max] ->
   ?random_seed:int ->
   ?peak_list:'a workflow ->
-  'a workflow list ->
+  'a workflow ->
+  'a workflow ->
   'a output directory workflow
 
 val items : ('a output, 'a) selector
