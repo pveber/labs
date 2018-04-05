@@ -3,6 +3,6 @@
 (library
  ((name labs_extensible_bistro)
   (public_name labs.extensible_bistro)
-  (libraries (core))
+  (libraries (core lwt.unix))
   (preprocess (pps (ppx_let)))
 ))
