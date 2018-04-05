@@ -222,6 +222,30 @@ module Models(S : Syntax) = struct
 end
 
 
+module Jags_ast = struct
+  type identifier = string
+  and index =
+    | Unary_index of expr
+    | Binary_index of expr * expr
+  and variable = identifier * index option
+  and expr =
+    | Variable of variable
+    | Int of int
+    | Float of float
+    | App of identifier * expr list
+  and statement =
+    | Sampling of variable * expr
+    | For_loop of {
+        index : identifier ;
+        lb : expr ;
+        ub : expr ;
+        body : statement list ;
+      }
+  and t = statement list
+
+  (* let pp *) 
+end
+
 
 module DAG = struct
   type node =
