@@ -9,12 +9,12 @@ class type file = object
   method kind : [`File]
 end
 
-class type binary_file = object
+class type binary_encoded = object
   inherit file
   method encoding : [`Binary_encoding]
 end
 
-class type text_file = object
+class type text_encoded = object
   inherit file
   method encoding : [`Text_encoding]
 end
@@ -25,7 +25,7 @@ class type html = object
 end
 
 class type ['a] ocaml_value = object
-  inherit binary_file
+  inherit binary_encoded
   method load : 'a
 end
 
@@ -35,12 +35,12 @@ type 'a blist = 'a list ocaml_value
 
 module type Lang = sig
   type 'a t
-  type 'a pt = 'a path t
+  type 'a file = (#file as 'a) path t
 
   val string : string -> string t
   val list : 'a t list -> 'a list t
   val input : string -> _ path t
-  val load : 'a ocaml_value path t -> 'a t
+  val load : 'a ocaml_value file -> 'a t
   val map : 'a list t -> f:('a t -> 'b t) -> 'b list t
   val _if_ : bool t -> 'a t -> 'a t -> 'a t
 
@@ -50,11 +50,11 @@ module type Lang = sig
       ?user:string ->
       ?password:string ->
       string t -> _ path t
-    val grep : string -> #text_file pt -> #text_file pt
+    val grep : string -> #text_encoded file -> #text_encoded file
   end
 
   module Text_file : sig
-    val lines : #text_file pt -> string list t
+    val lines : #text_encoded file -> string list t
   end
 end
 
@@ -77,7 +77,7 @@ end
 module Engine = struct
   type 'a t = ..
 
-  type 'a pt = 'a path t
+  type 'a file = (#file as 'a) path t
 
   type any = Any : _ t -> any
 
@@ -89,7 +89,7 @@ module Engine = struct
     | If : { cond : bool t ; _then_ : 'a t ; _else_ : 'a t } -> 'a t
     | Map : 'a list t * ('a t -> 'b t) -> 'b list t
     | Command : any Command.t -> 'a path t
-    | Text_file_lines : #text_file path t -> string list t
+    | Text_file_lines : #text_encoded file -> string list t
 
   let string s = Const s
   let list xs = List xs
@@ -149,6 +149,22 @@ module Engine_lwt() = struct
     | Load_value v ->
       eval v >>= fun (Path fn) ->
       Lwt_io.(with_file input fn read_value)
+
+    | If { cond ; _then_ ; _else_ } ->
+      eval cond >>= fun cond ->
+      if cond then eval _then_ else eval _else_
+
+    | Map (v, f) ->
+      eval v >>= fun xs ->
+      Lwt_list.map_p (fun x -> eval (f (Const x))) xs
+
+    | Command cmd ->
+      assert false
+
+    | Text_file_lines x ->
+      eval x >>= fun (Path fn) ->
+      Lwt_io.lines_of_file fn
+      |> Lwt_stream.to_list
 
     | _ -> assert false
 
