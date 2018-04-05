@@ -1,0 +1,8 @@
+(jbuild_version 1)
+
+(library
+ ((name labs_extensible_bistro)
+  (public_name labs.extensible_bistro)
+  (libraries (core))
+  (preprocess (pps (ppx_let)))
+))
