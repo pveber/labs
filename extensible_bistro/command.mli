@@ -8,7 +8,12 @@ type docker_image = {
 }
 [@@deriving sexp]
 
-type 'a t
+type 'a t =
+  | Docker of docker_image * 'a t
+  | Simple_command of 'a Template.t
+  | And_list of 'a t list
+  | Or_list of 'a t list
+  | Pipe_list of 'a t list
 
 val cmd :
   string ->

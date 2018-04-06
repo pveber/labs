@@ -20,7 +20,7 @@ class type text_encoded = object
 end
 
 class type html = object
-  inherit file
+  inherit text_encoded
   method format : [`Html]
 end
 
@@ -62,7 +62,7 @@ end
 module NLP_wikipedia(L : Lang) = struct
   open L
 
-  let protein_wikipedia_page =
+  let protein_wikipedia_page : html file =
     string "https://en.wikipedia.org/wiki/Protein"
     |> Unix_utils.wget
 
@@ -79,7 +79,10 @@ module Engine = struct
 
   type 'a file = (#file as 'a) path t
 
-  type any = Any : _ t -> any
+  type dep =
+    | Path_dep : _ path t -> dep
+    | String_dep : string t -> dep
+    | Int_dep : int t -> dep
 
   type _ t +=
     | Const : 'a -> 'a t
@@ -88,7 +91,7 @@ module Engine = struct
     | Load_value : 'a ocaml_value path t -> 'a t
     | If : { cond : bool t ; _then_ : 'a t ; _else_ : 'a t } -> 'a t
     | Map : 'a list t * ('a t -> 'b t) -> 'b list t
-    | Command : any Command.t -> 'a path t
+    | Command : dep Command.t -> 'a path t
     | Text_file_lines : #text_encoded file -> string list t
 
   let string s = Const s
@@ -101,7 +104,8 @@ module Engine = struct
 
   module Command = struct
     include Command
-    let dep x = dep (Any x)
+    let pdep x = dep (Path_dep x)
+    let sdep x = dep (String_dep x)
   end
 
   let cmd ?stdout x args = Command Command.(cmd ?stdout x args)
@@ -110,7 +114,7 @@ module Engine = struct
     let grep pat x =
       cmd "grep" ~stdout:Command.dest Command.[
           quote ~using:'\'' (string pat) ;
-          dep x
+          pdep x
         ]
 
     let wget ?no_check_certificate ?user ?password (url : string t) =
@@ -119,7 +123,7 @@ module Engine = struct
           option (opt "--user" string) user ;
           option (opt "--password" string) password ;
           opt "-O" ident dest ;
-          dep url ;
+          sdep url ;
         ]
   end
 
@@ -132,9 +136,45 @@ module Engine_lwt() = struct
   open Lwt
   include Engine
 
+  module Command_map = struct
+    let rec map_p x ~f =
+      let open Command in
+      match x with
+      | Docker (img, cmd) ->
+        map_p cmd ~f >|= fun cmd ->
+        Docker (img, cmd)
+      | Simple_command tmpl ->
+        map_p_tokens tmpl ~f >|= fun tmpl ->
+        Simple_command tmpl
+      | And_list xs ->
+        map_p_cmd_list xs ~f >|= fun xs -> And_list xs
+      | Or_list xs ->
+        map_p_cmd_list xs ~f >|= fun xs -> Or_list xs
+      | Pipe_list xs ->
+        map_p_cmd_list xs ~f >|= fun xs -> Pipe_list xs
+
+    and map_p_cmd_list xs ~f = Lwt_list.map_p (map_p ~f) xs
+
+    and map_p_tokens xs ~f =
+      Lwt_list.map_p (map_p_token ~f) xs
+
+    and map_p_token x ~f =
+      let open Template in
+      match x with
+      | D x -> f x >|= fun y -> D y
+      | DEST
+      | NP
+      | TMP
+      | EXE
+      | S _
+      | MEM as x -> Lwt.return x
+      | F tmpl ->
+        map_p_tokens tmpl ~f >|= fun tmpl ->
+        F tmpl
+  end
   type status = [`RUNNING | `DONE | `FAILED]
 
-  let cache = String.Table.create ()
+  (* let cache = String.Table.create () *)
 
   let rec eval : type s. s t -> s Lwt.t = function
     | Const x -> Lwt.return x
@@ -159,7 +199,16 @@ module Engine_lwt() = struct
       Lwt_list.map_p (fun x -> eval (f (Const x))) xs
 
     | Command cmd ->
-      assert false
+      let f = function
+        | Path_dep x ->
+          eval x >|= fun (Path p) -> `Path p
+        | String_dep x ->
+          eval x >|= fun s -> `String s
+        | Int_dep x ->
+          eval x >|= fun i -> `Int i
+      in
+      Command_map.map_p cmd ~f >>= fun cmd ->
+      Lwt.return (Path "")
 
     | Text_file_lines x ->
       eval x >>= fun (Path fn) ->
