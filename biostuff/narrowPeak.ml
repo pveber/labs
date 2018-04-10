@@ -60,3 +60,8 @@ let parse line =
         )
       | _ -> failwith line
     )
+
+include Line_oriented.Make(struct
+    type nonrec item = item
+    let parse = parse
+  end)

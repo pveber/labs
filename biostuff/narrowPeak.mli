@@ -20,3 +20,5 @@ type item = [
 ]
 
 val parse : Line.t -> item
+
+include Line_oriented.S with type item := item
