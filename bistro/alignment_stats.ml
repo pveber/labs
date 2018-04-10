@@ -63,7 +63,7 @@ let%bistro summary samples bamstats chrstats =
       let all_chr =
         List.map stats ~f:(List.map ~f:fst)
         |> List.concat
-        |> List.dedup_and_sort
+        |> List.dedup_and_sort ~compare:String.compare
       in
       let header =
         thead [

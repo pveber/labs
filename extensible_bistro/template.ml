@@ -19,7 +19,7 @@ let rec deps tmpl =
       | S _ | DEST | TMP | NP | MEM | EXE -> []
     )
   |> List.concat
-  |> List.dedup_and_sort
+  |> List.dedup_and_sort ~compare:Pervasives.compare
 
 
 let rec map_token x ~f = match x with

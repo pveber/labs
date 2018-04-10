@@ -24,7 +24,7 @@ let rec deps = function
   | Pipe_list xs ->
     List.map xs ~f:deps
     |> List.concat
-    |> List.dedup_and_sort
+    |> List.dedup_and_sort ~compare:Pervasives.compare
   | Simple_command tokens -> Template.deps tokens
   | Docker (_, c) -> deps c
 

@@ -1,4 +1,4 @@
-open Base
+open Core_kernel
 
 type t = {
   chrom : string ;

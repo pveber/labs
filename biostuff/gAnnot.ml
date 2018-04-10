@@ -34,7 +34,7 @@ module Selection = struct
       )
 
   let union u v =
-    let keys = List.dedup_and_sort (Map.keys u @ Map.keys v) in
+    let keys = List.dedup_and_sort ~compare:String.compare (Map.keys u @ Map.keys v) in
     List.fold keys ~init:Map.empty ~f:(fun accu k ->
         Map.set accu ~key:k ~data:(
           Iset.union
