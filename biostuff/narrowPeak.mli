@@ -1,6 +1,6 @@
 open Biocaml_base
 
-type t = {
+type record = {
   chrom : string ;
   chromStart : int ;
   chromEnd : int ;
@@ -15,10 +15,13 @@ type t = {
 
 type item = [
   | `Comment of string
-  | `Record of t
+  | `Record of record
   | `Track of string
 ]
 
-val parse : Line.t -> item
+module Item : sig
+  type t = item
+  val parse : Line.t -> item
+end
 
 include Line_oriented.S with type item := item

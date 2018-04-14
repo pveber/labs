@@ -6,8 +6,8 @@ let lines () =
   Pipes_unix.Pipe.loop step initial_state
 
 module type Item = sig
-  type item
-  val parse : Line.t -> item
+  type t
+  val parse : Line.t -> t
 end
 
 module type S = sig
@@ -17,6 +17,8 @@ module type S = sig
 end
 
 module Make(Item : Item) = struct
+  type item = Item.t
+
   let load fn =
     In_channel.read_lines fn
     |> List.map ~f:(fun l ->
