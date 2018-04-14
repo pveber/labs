@@ -35,11 +35,11 @@ let bed_unparser () =
 
 let gff3_parser () =
   lines ()
-  $$ map (Gff.gff3_item_of_line %% ok_or_failwith)
+  $$ map (Gff.Item.parse)
 
 
 let gff_unparser version =
-  map (Gff.line_of_item version)
+  map (Biocaml_base.Gff.line_of_item version)
   $$ lines_to_strings ()
 
 let table_parser () =
