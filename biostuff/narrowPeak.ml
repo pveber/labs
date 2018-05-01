@@ -61,6 +61,23 @@ module Item = struct
           )
         | _ -> failwith line
       )
+
+  let unparse = function
+    | `Comment s -> "#" ^ s
+    | `Track s -> "track " ^ s
+    | `Record r ->
+      String.concat ~sep:"\t" [
+        r.chrom ;
+        Int.to_string r.chromStart ;
+        Int.to_string r.chromEnd ;
+        r.name ;
+        Int.to_string r.score ;
+        Bed.unparse_strand r.strand ;
+        Float.to_string r.signalValue ;
+        Float.to_string (Option.value ~default:(-1.) r.pValue) ;
+        Float.to_string (Option.value ~default:(-1.) r.qValue) ;
+        Int.to_string (Option.value ~default:(-1) r.peak) ;
+      ]
 end
 
 include Line_oriented.Make(Item)
