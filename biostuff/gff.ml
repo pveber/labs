@@ -26,6 +26,9 @@ module Item = struct
     | Ok item -> item
     | Error (`Msg msg) -> failwith msg
 
+  let unparse item =
+    (Gff.line_of_item `three item :> string)
+
   let to_record = function
     | `Record r -> Some r
     | `Comment _ -> None
