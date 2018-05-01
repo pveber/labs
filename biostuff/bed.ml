@@ -21,6 +21,13 @@ let parse_strand = function
   | "-" -> Ok `Minus
   | s -> Error s
 
+
+let unparse_strand = function
+  | `Not_relevant -> "."
+  | `Unknown -> "?"
+  | `Plus -> "+"
+  | `Minus -> "-"
+
 let parse_item f line =
   match (line : Line.t :> string) with
   | "" -> `Comment ""

@@ -12,6 +12,7 @@ type strand = [
   | `Unknown
 ]
 val parse_strand : string -> (strand, string) result
+val unparse_strand : strand -> string
 
 module type S = sig
   type t
