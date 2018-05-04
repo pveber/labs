@@ -23,3 +23,31 @@ let%test "of_string_exn_1" =
 let of_string s =
   try Ok (of_string_exn s)
   with _ -> Error `Parse_error
+
+let strictly_before x y =
+  match String.compare x.chr y.chr with
+  | -1 -> true
+  |  1 -> false
+  |  0 -> x.ed < y.st
+  | _ -> assert false
+
+let%test "strictly_before_1" =
+  strictly_before { chr = "a" ; st = 0 ; ed = 4 } { chr = "b" ; st = 0 ; ed = 4 }
+
+let%test "strictly_before_2" =
+  strictly_before { chr = "a" ; st = 0 ; ed = 4 } { chr = "a" ; st = 10 ; ed = 40 }
+
+let%test "strictly_before_3" =
+  not (
+    strictly_before { chr = "a" ; st = 0 ; ed = 4 } { chr = "a" ; st = 4 ; ed = 40 }
+  )
+
+let intersects x y =
+  String.(x.chr = y.chr)
+  && (
+    (x.st <= y.st && y.st <= x.ed)
+    || (y.st <= x.st && x.st <= y.ed)
+  )
+
+let%test "intersects_1" =
+  intersects { chr = "a" ; st = 0 ; ed = 4 } { chr = "a" ; st = 2 ; ed = 30 }
