@@ -1,19 +1,19 @@
-class type ['a] directory = object
+class type ['a] directory_format = object
   method path_kind : [`Directory]
   method contents : 'a
 end
 
-class type file = object
+class type file_format = object
   method path_kind : [`File]
 end
 
 class type binary_encoded = object
-  inherit file
+  inherit file_format
   method encoding : [`Binary_encoding]
 end
 
 class type text_encoded = object
-  inherit file
+  inherit file_format
   method encoding : [`Text_encoding]
 end
 
@@ -37,14 +37,14 @@ class type ['a] zip = object
 end
 
 class type ['a] gz = object
-  constraint 'a = #file
+  constraint 'a = #file_format
   inherit binary_encoded
   method format : [`gz]
   method content_format : 'a
 end
 
 class type ['a] bz2 = object
-  constraint 'a = #file
+  constraint 'a = #file_format
   inherit binary_encoded
   method format : [`bz2]
   method content_format : 'a
@@ -57,7 +57,7 @@ class type ['a] tar = object
 end
 
 class type text_file = object
-  inherit file
+  inherit file_format
   method encoding : [`text]
 end
 

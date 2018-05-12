@@ -5,6 +5,9 @@ type 'a workflow = 'a Workflow.t
 type 'a path = 'a Workflow.path
 include Path_types
 
+type 'a file = (#file_format as 'a) path workflow
+type 'a directory = 'a directory_format path workflow
+
 type docker_image = Command.docker_image
 
 module Sh = struct
@@ -113,3 +116,9 @@ module Sh = struct
 
   let ( % ) f g x = g (f x)
 end
+
+let shell ?descr ?mem ?np ?version cmds =
+  Workflow.shell ?descr ?mem ?np ?version (Sh.and_list cmds)
+
+let input = Workflow.input
+let select = Workflow.select

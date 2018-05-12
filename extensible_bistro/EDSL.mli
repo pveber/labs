@@ -3,6 +3,9 @@ type 'a workflow
 type 'a path
 include module type of Path_types
 
+type 'a file = (#file_format as 'a) path workflow
+type 'a directory = 'a directory_format path workflow
+
 type docker_image
 
 module Sh : sig
@@ -130,3 +133,25 @@ module Sh : sig
   val ( % ) : ('a -> 'b) -> ('b -> 'c) -> 'a -> 'c
 
 end
+
+
+val shell :
+  ?descr:string ->
+  ?mem:int ->
+  ?np:int ->
+  ?version:int ->
+  Sh.command list -> 'a path workflow
+(** Workflow constructor, taking a list of commands in input. Other arguments are:
+    - @param descr description of the workflow, used for logging
+    - @param mem required memory
+    - @param np maximum number of cores (could be given less at execution)
+    - @param version version number, used to force the rebuild of a workflow *)
+
+val input : ?may_change:bool -> string -> 'a path workflow
+(** Constructs a workflow from an existing file on the
+    filesystem. The argument [may_change] indicates that the file
+    may be modified, which is detected by giving the workflow a
+    digest of the file as an input. *)
+
+val select : 'a directory -> string list -> 'a path workflow
+(** Selector constructor *)

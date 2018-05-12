@@ -26,7 +26,7 @@ let rec deps = function
   | Simple_command tokens -> Template.deps tokens
   | Docker (_, c) -> deps c
 
-let rec map ~f = function
+let rec map c ~f = match c with
   | Docker (im, cmd) -> Docker (im, map ~f cmd)
   | Simple_command toks ->
     Simple_command (Template.map ~f toks)

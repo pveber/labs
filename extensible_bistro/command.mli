@@ -13,3 +13,5 @@ type 'a t =
   | Or_list of 'a t list
   | Pipe_list of 'a t list
 
+val deps : 'a t -> 'a list
+val map : 'a t -> f:('a -> 'b) -> 'b t
