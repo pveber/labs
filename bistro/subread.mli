@@ -16,6 +16,7 @@ val featureCounts :
   ?feature_type:string ->
   ?attribute_type:string ->
   ?strandness:[`Unstranded | `Stranded | `Reversely_stranded] ->
+  ?q:int ->
   ?nthreads:int ->
   gff workflow ->
   < format : [< `bam | `sam] ; .. > workflow -> (*FIXME: handle paired-hand, just add other file next to the other*)

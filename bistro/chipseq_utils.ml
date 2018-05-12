@@ -11,7 +11,7 @@ let%bistro gff_of_bed bed =
           `Record (
             Gff.record
               ~strand:`Not_stranded
-              ~attributes:["gene_id", [name]]
+              ~attributes:["peak_id", [name]]
               ~feature:"peak"
               chr start_pos stop_pos
           )

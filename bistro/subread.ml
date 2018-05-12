@@ -18,7 +18,7 @@ let strandness_token = function
 
 let featureCounts
     ?feature_type ?attribute_type ?strandness
-    ?nthreads
+    ?q ?nthreads
     gff mapped_reads =
   workflow ~descr:"featureCounts" ~np:(Option.value ~default:1 nthreads) [
     mkdir_p dest ;
@@ -26,6 +26,7 @@ let featureCounts
       option (opt "-t" string) feature_type ;
       option (opt "-g" string) attribute_type ;
       option (opt "-s" strandness_token) strandness ;
+      option (opt "-Q" int) q ;
       option (opt "-T" (fun _ -> np)) nthreads ;
       opt "-a" dep gff ;
       opt "-o" ident (dest // "counts.tsv") ;
