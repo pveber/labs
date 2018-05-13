@@ -1,6 +1,6 @@
-type 'a workflow
+type 'a workflow = 'a Workflow.t
 
-type 'a path
+type 'a path = 'a Workflow.path
 include module type of Path_types
 
 type 'a file = (#file_format as 'a) path workflow

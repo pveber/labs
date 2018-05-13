@@ -1,0 +1,7 @@
+(jbuild_version 1)
+
+(executable
+ ((name bistro_test)
+  (modules (bistro_test))
+  (libraries (labs_extensible_bistro_engine))
+))

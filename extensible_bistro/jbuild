@@ -3,7 +3,6 @@
 (library
  ((name labs_extensible_bistro)
   (public_name labs.extensible_bistro)
-  (libraries (core lwt.unix rresult))
-  (flags (:standard -unsafe-string))
+  (libraries (core))
   (preprocess (pps (ppx_let)))
 ))
