@@ -10,6 +10,14 @@ type 'a directory = 'a directory_format path workflow
 
 type docker_image = Command.docker_image
 
+let docker_image ?tag ?registry ~account ~name () = Command.{
+  dck_account = account ;
+  dck_name = name ;
+  dck_tag = tag ;
+  dck_registry = registry ;
+}
+
+
 module Sh = struct
   open Template
   open Command
@@ -106,13 +114,6 @@ module Sh = struct
   let or_list xs = Or_list xs
   let and_list xs = And_list xs
   let pipe xs = Pipe_list xs
-
-  let docker_image ?tag ?registry ~account ~name () = {
-    dck_account = account ;
-    dck_name = name ;
-    dck_tag = tag ;
-    dck_registry = registry ;
-  }
 
   let ( % ) f g x = g (f x)
 end

@@ -8,6 +8,14 @@ type 'a directory = 'a directory_format path workflow
 
 type docker_image
 
+val docker_image :
+  ?tag:string ->
+  ?registry:string ->
+  account:string ->
+  name:string ->
+  unit -> docker_image
+(** Construct a description of a publicly available docker image *)
+
 module Sh : sig
 
   (** FRAGMENTS *)
@@ -115,16 +123,6 @@ module Sh : sig
   val cd : fragment -> command
   val rm_rf : fragment -> command
   val mv : fragment -> fragment -> command
-
-  (** {5 Docker-related} *)
-
-  val docker_image :
-    ?tag:string ->
-    ?registry:string ->
-    account:string ->
-    name:string ->
-    unit -> docker_image
-  (** Construct a description of a publicly available docker image *)
 
   val docker : docker_image -> command -> command
   (** [docker cmd] transforms [cmd] so that it can be executed in a

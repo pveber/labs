@@ -69,11 +69,31 @@ let create ~db = {
   tasks = Table.create () ;
 }
 
+let dep_id (Workflow.Dep x) = Workflow.id x
+
+let deps_completed sched deps =
+  List.for_all deps ~f:(fun (Workflow.Dep d) ->
+      match Table.find sched.tasks (Workflow.id d) with
+      | Some ts -> ts.status = `DONE
+      | None -> false
+    )
+
+let deps_of_command cmd =
+  Command.deps cmd
+  |> List.map ~f:(fun (Workflow.Path_dep w) -> Workflow.Dep w)
+
 let rec register : type s. t -> s Workflow.t -> unit = fun sched w ->
   if not (Table.mem sched.tasks (Workflow.id w)) then (
     match w with
     | Workflow.Input { id ; path } ->
       let status = task_status w Task.Input `READY in
+      Table.set sched.tasks id status
+    | Workflow.Shell { id ; cmd } ->
+      let deps = deps_of_command cmd in
+      let () = List.iter deps ~f:(fun (Workflow.Dep w) -> register sched w) in
+      let deps_completed = deps_completed sched deps in
+      let status = if deps_completed then `READY else `W4DEPS in
+      let status = task_status w Task.Shell status in
       Table.set sched.tasks id status
     | _ -> assert false
   )
