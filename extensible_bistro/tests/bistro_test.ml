@@ -15,11 +15,13 @@ let waffles : text_encoded file = input "test/waffles.txt"
 let goal = stanford_parser waffles
 
 let db = Db.init_exn "_bistro"
-let sched = Scheduler.create ~db
+let sched = Scheduler.create ~db ()
+
 let () =
   let open Scheduler in
   submit sched goal ;
   stats sched
   |> sexp_of_stats
   |> Sexp.output_hum stdout ;
-  Out_channel.output_char stdout '\n'
+  Out_channel.output_char stdout '\n' ;
+  start sched

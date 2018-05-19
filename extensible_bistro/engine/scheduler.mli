@@ -17,10 +17,10 @@ and counts = {
 
 val create :
   ?logger:Logger.t ->
+  ?np:int ->
+  ?mem:[`MB of int] ->
   db:Db.t ->
-  np:int ->
-  mem:[`MB of int] ->
-  t
+  unit -> t
 
 val stats : t -> stats
 

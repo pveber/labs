@@ -58,6 +58,8 @@ type t = {
   alloc : Allocator.t ;
   logger : Logger.t ;
   tasks : task_status Table.t ;
+  mutable running : bool ;
+  start_signal : unit Lwt_condition.t ;
 }
 
 let stats sched =
@@ -65,12 +67,20 @@ let stats sched =
       incr_stats acc ts.status
     )
 
-let create ?(logger = Logger.null) ~db ~np ~mem:(`MB mem) = {
-  db ;
-  alloc = Allocator.create ~np ~mem ;
-  tasks = Table.create () ;
-  logger ;
-}
+let create ?(logger = Logger.null) ?(np = 1) ?(mem = `MB 100) ~db () =
+  let `MB mem = mem in
+  {
+    db ;
+    alloc = Allocator.create ~np ~mem ;
+    tasks = Table.create () ;
+    logger ;
+    running = false ;
+    start_signal = Lwt_condition.create () ;
+  }
+
+let wait4start sched =
+  if sched.running then Lwt.return ()
+  else Lwt_condition.wait sched.start_signal
 
 let dep_id (Workflow.Dep x) = Workflow.id x
 
@@ -158,4 +168,5 @@ and eval_aux sched id =
     Lwt.fail_with (sprintf "error while evaluating %s" id)
 
 let start sched =
-  ()
+  sched.running <- true ;
+  Lwt_condition.broadcast sched.start_signal ()
