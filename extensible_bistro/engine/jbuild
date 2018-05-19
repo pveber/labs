@@ -4,5 +4,5 @@
  ((name labs_extensible_bistro_engine)
   (public_name labs.extensible_bistro.engine)
   (libraries (labs_extensible_bistro lwt.unix rresult))
-  (preprocess (pps (ppx_jane)))
+  (preprocess (pps (ppx_jane lwt.ppx)))
 ))

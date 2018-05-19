@@ -16,7 +16,10 @@ and counts = {
 [@@deriving sexp]
 
 val create :
+  ?logger:Logger.t ->
   db:Db.t ->
+  np:int ->
+  mem:[`MB of int] ->
   t
 
 val stats : t -> stats
@@ -25,3 +28,10 @@ val submit :
   t ->
   _ Workflow.t ->
   unit
+
+val eval :
+  t ->
+  'a Workflow.t ->
+  'a Lwt.t
+
+val start : t -> unit

@@ -1,4 +1,5 @@
 open Core
+open Lwt
 open Labs_extensible_bistro
 
 module Table = String.Table
@@ -34,13 +35,11 @@ let incr_counts c = function
 let incr_stats stats status =
   { stats with steps = incr_counts stats.steps status }
 
-type outcome = Succeeded | Failed
-
 type task_status = {
   id : string ;
   task : Task.t ;
-  outcome : outcome Lwt.t ;
-  send_outcome : outcome Lwt.u ;
+  outcome : Task.Outcome.t Lwt.t ;
+  send_outcome : Task.Outcome.t Lwt.u ;
   mutable status : [`W4DEPS | `READY | `RUNNING | `DONE | `FAILED] ;
 }
 
@@ -56,6 +55,8 @@ let task_status w task status =
 
 type t = {
   db : Db.t ;
+  alloc : Allocator.t ;
+  logger : Logger.t ;
   tasks : task_status Table.t ;
 }
 
@@ -64,39 +65,97 @@ let stats sched =
       incr_stats acc ts.status
     )
 
-let create ~db = {
+let create ?(logger = Logger.null) ~db ~np ~mem:(`MB mem) = {
   db ;
+  alloc = Allocator.create ~np ~mem ;
   tasks = Table.create () ;
+  logger ;
 }
 
 let dep_id (Workflow.Dep x) = Workflow.id x
 
-let deps_completed sched deps =
-  List.for_all deps ~f:(fun (Workflow.Dep d) ->
-      match Table.find sched.tasks (Workflow.id d) with
-      | Some ts -> ts.status = `DONE
-      | None -> false
-    )
+let wait4deps sched deps =
+  let check_outcome (Workflow.Dep d) =
+    match Table.find sched.tasks (Workflow.id d) with
+    | Some ts -> ts.outcome
+    | None ->
+      (* never call [deps_completed] before having registered the deps *)
+      assert false
+  in
+  Lwt_list.map_p check_outcome deps >|= fun xs ->
+  if List.for_all xs ~f:Task.Outcome.succeeded then Ok ()
+  else Error `Some_dep_failed
 
 let deps_of_command cmd =
   Command.deps cmd
   |> List.map ~f:(fun (Workflow.Path_dep w) -> Workflow.Dep w)
 
+let shell_task_thread sched w ~id ~descr ~cmd ~np ~mem ~deps =
+  let task = Task.of_shell sched.db ~id ~cmd ~descr ~np ~mem in
+  let status = task_status w task `W4DEPS in
+  Table.set sched.tasks id status ;
+  wait4deps sched deps >>= function
+  | Error `Some_dep_failed ->
+    status.status <- `FAILED ;
+    Lwt_result.fail `Some_dep_failed
+  | Ok () ->
+    Allocator.request sched.alloc (Task.requirement task) >>= function
+    | Ok resource ->
+      sched.logger#event (Task_started (task, resource)) ;
+      Task.perform task >>= fun outcome ->
+      Allocator.release sched.alloc resource ;
+      Lwt.return outcome
+    | Error (`Msg msg) ->
+      let err = `Allocation_error msg in
+      sched.logger#event (Task_skipped (task, err)) ;
+      Lwt_result.fail (`Skipped err)
+
 let rec register : type s. t -> s Workflow.t -> unit = fun sched w ->
   if not (Table.mem sched.tasks (Workflow.id w)) then (
-    match w with
-    | Workflow.Input { id ; path } ->
-      let status = task_status w Task.Input `READY in
-      Table.set sched.tasks id status
-    | Workflow.Shell { id ; cmd } ->
-      let deps = deps_of_command cmd in
-      let () = List.iter deps ~f:(fun (Workflow.Dep w) -> register sched w) in
-      let deps_completed = deps_completed sched deps in
-      let status = if deps_completed then `READY else `W4DEPS in
-      let status = task_status w Task.Shell status in
-      Table.set sched.tasks id status
-    | _ -> assert false
+    let task = match w with
+      | Workflow.Input { id ; path } -> Task.of_input ()
+      | Workflow.Shell { id ; cmd ; mem ; np ; descr } ->
+        let deps = deps_of_command cmd in
+        List.iter deps ~f:(fun (Workflow.Dep w) -> register sched w) ;
+        Task.of_shell sched.db ~id ~descr ~np ~mem ~cmd
+      | _ -> assert false
+    in
+    let status = task_status w task `READY in
+    Table.set sched.tasks (Workflow.id w) status
   )
+  else ()
 
 let submit sched w =
   register sched w
+
+let rec eval : type s. t -> s Workflow.t -> s Lwt.t = fun sched w ->
+  let open Workflow in
+  register sched w ;
+  match w with
+  | Const x -> Lwt.return x.value
+  | List ws ->
+    Lwt_list.map_p (eval sched) ws.value
+  | Input { id ; path } ->
+    eval_aux sched id >|= fun () ->
+    Path (Lpath.to_string path)
+  | Shell { id } ->
+    eval_aux sched id >|= fun () ->
+    Path (Db.cache sched.db id)
+  | Select { id ; dir ; path = path_in_dir} ->
+    eval_aux sched id >>= fun () ->
+    eval sched dir >>= fun (Path p) ->
+    Lwt.return (Path (Filename.concat p (Lpath.to_string path_in_dir)))
+  | Glob _ -> assert false
+  | Map _ -> assert false
+  | Value _ -> assert false
+
+and eval_aux sched id =
+  let status = Table.find_exn sched.tasks id in (* cannot fail because we called register above *)
+  let%lwt outcome = status.outcome in
+  if Task.Outcome.succeeded outcome then
+    Lwt.return ()
+  else
+    Lwt.fail_with (sprintf "error while evaluating %s" id)
+
+let start sched =
+  ()
