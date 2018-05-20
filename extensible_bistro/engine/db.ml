@@ -123,11 +123,12 @@ let rec workflow_path : type s. t -> s path workflow -> string = fun db w ->
   | Input { path } -> Lpath.to_string path
   | Select { dir ; path } ->
     Filename.concat (workflow_path db dir) (Lpath.to_string path)
-  | Const { value = Path p } -> p (* FIXME: this one's fishy, we
-                                     should not return a value here,
-                                     but this shows that const breaks
-                                     a desirable invariant that _ path
-                                     workflow is actually stored on
-                                     the file system *)
+  | Const _ -> assert false (* FIXME: this one's fishy, we should not
+                               return a value here, but this shows
+                               that const breaks a desirable invariant
+                               that _ path workflow is actually stored
+                               on the file system *)
   | Shell { id } -> cache db id
   | Value { id } -> cache db id
+
+let cache_mem db w = Sys.file_exists (workflow_path db w) = `Yes

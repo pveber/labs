@@ -24,4 +24,8 @@ let () =
   |> sexp_of_stats
   |> Sexp.output_hum stdout ;
   Out_channel.output_char stdout '\n' ;
-  start sched
+  Out_channel.flush stdout ;
+  let t = eval sched goal in
+  start sched ;
+  Lwt_main.run t
+  |> (fun (Path p) -> print_endline p)

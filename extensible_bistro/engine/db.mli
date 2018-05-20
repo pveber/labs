@@ -35,3 +35,4 @@ val stderr : t -> string -> string
 val build : t -> string -> string
 
 val workflow_path : t -> _ path workflow -> string
+val cache_mem : t -> _ path workflow -> bool

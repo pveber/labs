@@ -35,7 +35,7 @@ let incr_counts c = function
 let incr_stats stats status =
   { stats with steps = incr_counts stats.steps status }
 
-type task_status = {
+type task_entry = {
   id : string ;
   task : Task.t ;
   outcome : Task.Outcome.t Lwt.t ;
@@ -43,7 +43,7 @@ type task_status = {
   mutable status : [`W4DEPS | `READY | `RUNNING | `DONE | `FAILED] ;
 }
 
-let task_status w task status =
+let task_entry w task status =
   let outcome, send_outcome = Lwt.wait () in
   {
     id = Workflow.id w ;
@@ -57,7 +57,7 @@ type t = {
   db : Db.t ;
   alloc : Allocator.t ;
   logger : Logger.t ;
-  tasks : task_status Table.t ;
+  tasks : task_entry Table.t ;
   mutable running : bool ;
   start_signal : unit Lwt_condition.t ;
 }
@@ -77,6 +77,10 @@ let create ?(logger = Logger.null) ?(np = 1) ?(mem = `MB 100) ~db () =
     running = false ;
     start_signal = Lwt_condition.create () ;
   }
+
+let add_task sched w task status =
+  let entry = task_entry w task status in
+  Table.set sched.tasks (Task.id task) entry
 
 let wait4start sched =
   if sched.running then Lwt.return ()
@@ -101,8 +105,8 @@ let deps_of_command cmd =
   |> List.map ~f:(fun (Workflow.Path_dep w) -> Workflow.Dep w)
 
 let shell_task_thread sched w ~id ~descr ~cmd ~np ~mem ~deps =
-  let task = Task.of_shell sched.db ~id ~cmd ~descr ~np ~mem in
-  let status = task_status w task `W4DEPS in
+  let task = Task.of_shell sched.db ~id ~cmd ~descr ~np ~mem in (* FIXME *)
+  let status = task_entry w task `W4DEPS in
   Table.set sched.tasks id status ;
   wait4deps sched deps >>= function
   | Error `Some_dep_failed ->
@@ -121,19 +125,29 @@ let shell_task_thread sched w ~id ~descr ~cmd ~np ~mem ~deps =
       Lwt_result.fail (`Skipped err)
 
 let rec register : type s. t -> s Workflow.t -> unit = fun sched w ->
-  if not (Table.mem sched.tasks (Workflow.id w)) then (
-    let task = match w with
-      | Workflow.Input { id ; path } -> Task.of_input ()
-      | Workflow.Shell { id ; cmd ; mem ; np ; descr } ->
-        let deps = deps_of_command cmd in
-        List.iter deps ~f:(fun (Workflow.Dep w) -> register sched w) ;
-        Task.of_shell sched.db ~id ~descr ~np ~mem ~cmd
-      | _ -> assert false
-    in
-    let status = task_status w task `READY in
-    Table.set sched.tasks (Workflow.id w) status
-  )
-  else ()
+  let is_registered = Table.mem sched.tasks (Workflow.id w) in
+  match w with
+  | Workflow.Input { id ; path } ->
+    if not is_registered then (
+      add_task sched w (Task.of_input ~id) `READY
+    )
+
+  | Workflow.Shell { id ; cmd ; mem ; np ; descr } ->
+    if not is_registered then (
+      let task = Task.of_shell sched.db ~id ~descr ~np ~mem ~cmd in
+      let is_done = Db.cache_mem sched.db w in
+      let status = if is_done then `DONE else `W4DEPS in
+      let () =
+        if not is_done then (
+          let deps = deps_of_command cmd in
+          List.iter deps ~f:(fun (Workflow.Dep w) -> register sched w)
+        )
+      in
+      add_task sched w task status
+    )
+
+  | _ -> assert false
+
 
 let submit sched w =
   register sched w
