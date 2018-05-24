@@ -40,18 +40,21 @@ type arrow_style = [
  *   | `none -> p
  *   | `triangle *)
 
-class line ?(vp = Viewport.id) ?(col = Color.black) ?(tip = `none) x y =
-  object
+class path ?(vp = Viewport.id) ?(col = Color.black) ?(tip = `none) origin points =
+  object (s)
     method image =
       let path =
-        P.empty
-        >> P.sub (Viewport.scale vp x)
-        >> P.line (Viewport.scale vp y)
+        List.fold points
+          ~init:(P.empty >> P.sub (Viewport.scale vp origin))
+          ~f:(fun acc p -> acc >> P.line (Viewport.scale vp p))
       in
       I.cut path (I.const col)
-    method bbox = Box2.of_pts x y
-    method start = x
-    method _end_ = y
+    method bbox = Box2.of_pts s#start s#_end_
+    method start = origin
+    method _end_ =
+      match points with
+      | [] -> s#start
+      | _ -> List.last_exn points (* [points] is not empty *)
   end
 
 let render croquis fn =
@@ -70,16 +73,16 @@ let render croquis fn =
       ignore (Vgr.render r `End)
     )
 
-let genome () =
-  let loc_start = 330000. and loc_end = 890000. in
-  let nb_tracks = 2 in
+(* let genome () = *)
+(*   let loc_start = 330000. and loc_end = 890000. in *)
+(*   let nb_tracks = 2 in *)
 
-  let margin = 0.05 in
-  
-  let vp = Viewport.make ~xlim:(loc_start, loc_end) ~ylim:(0., float nb_tracks) in
-  new line 
+(*   let margin = 0.05 in *)
+
+(*   let vp = Viewport.make ~xlim:(loc_start, loc_end) ~ylim:(0., float nb_tracks) in *)
+(*   new line *)
 
 let demo () =
-  let croquis = genome () in
+  (* let croquis = genome () in *)
+  let croquis = new path V2.zero [] in
   render croquis "rien.pdf"
-

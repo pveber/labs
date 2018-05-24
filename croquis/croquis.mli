@@ -4,9 +4,10 @@ open Vg
 module Viewport : sig
   type t
 
-  val make :
-    view:box2 ->
-    size:size2 ->
+  val linear :
+    xlim:float * float ->
+    ylim:float * float ->
+    size:float * float ->
     t
 
   val scale_x : t -> float -> float
@@ -24,11 +25,11 @@ type arrow_style = [
   | `triangle
 ]
 
-class line :
+class path :
   ?vp:Viewport.t ->
   ?col:Color.t ->
   ?tip:arrow_style ->
-  v2 -> v2 ->
+  v2 -> v2 list ->
   object
     inherit t
     method start : v2
