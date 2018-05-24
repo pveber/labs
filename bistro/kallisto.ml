@@ -2,9 +2,21 @@ open Core
 open Bistro.Std
 open Bistro.EDSL
 
-let env = docker_image ~account:"pveber" ~name:"kallisto" ~tag:"0.43.0" ()
+class type index = object
+  inherit binary_file
+  method format : [`kallisto_index]
+end
 
-type kallisto_output
+class type abundance_table = object
+  inherit tsv
+  method f1 : [`target_id] * string
+  method f2 : [`length] * int
+  method f3 : [`eff_length] * int
+  method f4 : [`est_counts] * float
+  method f5 : [`tpm] * float
+end
+
+let env = docker_image ~account:"pveber" ~name:"kallisto" ~tag:"0.43.0" ()
 
 let index fas =
   workflow ~descr:"kallisto-index" [
@@ -22,8 +34,8 @@ let fq_input = function
   | `fq_gz x -> psgunzip x
   | `fq x -> dep x
 
-let quant ?bootstrap_samples idx fq1 fq2 : kallisto_output directory workflow =
-  workflow ~descr:"kallisto-quant" ~np:4 [
+let quant ?bootstrap_samples ?threads idx fq1 fq2 =
+  workflow ~descr:"kallisto-quant" ?np:threads [
     cmd "kallisto quant" ~env [
       opt "-i" dep idx ;
       opt "-o" ident dest ;
@@ -34,7 +46,7 @@ let quant ?bootstrap_samples idx fq1 fq2 : kallisto_output directory workflow =
     ]
   ]
 
-let abundance : (kallisto_output, [`tsv]) selector =
+let abundance =
   selector [ "abundance.tsv" ]
 
 
