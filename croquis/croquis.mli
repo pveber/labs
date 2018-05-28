@@ -36,6 +36,14 @@ class path :
     method _end_ : v2
   end
 
+class venn_diagram2 :
+  ?a_label:string ->
+  ?b_label:string ->
+  compare:('a -> 'a -> int) ->
+  a:'a list ->
+  b:'a list ->
+  unit -> t
+
 val render :
   t ->
   string ->

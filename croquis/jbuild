@@ -3,5 +3,5 @@
 (library
  ((name labs_croquis)
   (public_name labs.croquis)
-  (libraries (base64 core_kernel tyxml vg.cairo))
+  (libraries (base64 core_kernel tyxml vg.cairo vg.pdf))
 ))
