@@ -49,20 +49,65 @@ let width_value = function
  *   | `none -> p
  *   | `triangle *)
 
-let rectangle ?area ~center ~size =
+let circle ?(col = Color.black) ?(width = `normal) ~center ~radius =
+  object
+    method image =
+      let area = `O { P.o with P.width = width_value width } in
+      I.cut ~area (P.empty >> P.circle center radius) (I.const col)
+    method bbox =
+      let r = 2. *. radius +. width_value width in
+      Box2.v_mid center (V2.v r r)
+  end
+
+let rectangle ?(col = Color.black) ?(width = `normal) ~center ~size =
   let dx = V2.x size /. 2. in
   let dy = V2.y size /. 2. in
-  let x1 = V2.add center (V2.v (-. dx) (-. dy)) in
-  let x2 = V2.add center (V2.v (-. dx) (   dy)) in
-  let x3 = V2.add center (V2.v (   dx) (   dy)) in
-  let x4 = V2.add center (V2.v (   dx) (-. dy)) in
-  let p =
-    P.empty >> P.sub x1 >> P.line x2
-    >> P.line x3 >> P.line x4 >> P.line x1
-  in
-  I.cut ?area p (I.const Color.black)
+  let sw = V2.add center (V2.v (-. dx) (-. dy)) in
+  let nw = V2.add center (V2.v (-. dx) (   dy)) in
+  let ne = V2.add center (V2.v (   dx) (   dy)) in
+  let se = V2.add center (V2.v (   dx) (-. dy)) in
+  object
+    method image =
+      let area = `O { P.o with P.width = width_value width } in
+      let p =
+        P.empty >> P.sub sw >> P.line nw
+        >> P.line ne >> P.line se >> P.line sw
+      in
+      I.cut ~area p (I.const col)
+    method bbox = Box2.of_pts sw ne
+  end
 
-class path ?(vp = Viewport.id) ?(col = Color.black) ?(tip = `none) origin points =
+let stack xs =
+  object
+    method image =
+      List.fold xs ~init:I.void ~f:(fun acc x -> I.blend acc x#image)
+    method bbox =
+      List.fold xs ~init:Box2.empty ~f:(fun acc x -> Box2.union acc x#bbox)
+  end
+
+let text ?(pos = V2.zero) txt =
+  let font_size = 0.3 in
+  let font = {
+    Font.name = "Helvetica" ;
+    slant = `Normal ;
+    weight = `W400 ;
+    size = font_size ;
+  }
+  in
+  let w = Font_utils.text_width font_size txt in
+  object
+    method image =
+      let glyphs =
+        String.fold txt ~init:[] ~f:(fun acc c -> Char.to_int c :: acc)
+        |> List.rev
+      in
+      I.cut_glyphs font glyphs (I.const Color.black)
+      |> I.move (V2.v (-. w /. 2.) 0.)
+      |> I.move pos
+    method bbox = Box2.v_mid pos (V2.v w 1.) (* FIXME *)
+  end
+
+let path ?(vp = Viewport.id) ?(col = Color.black) ?(tip = `none) origin points =
   object (s)
     method image =
       let path =
@@ -88,53 +133,19 @@ let intersection2 (type s) ~compare ~a ~b =
   S.cardinal (S.diff set_a set_b),
   S.cardinal (S.diff set_b set_a)
 
-class venn_diagram2 ?a_label ?b_label ~compare ~a ~b () =
+let venn_diagram2 ?a_label ?b_label ~compare ~a ~b () =
   let n_ab, n_a, n_b = intersection2 ~compare ~a ~b in
   let delta = 1. in
   let r = 1.8 in
   let center_a = V2.v (-. delta) 0. in
   let center_b = V2.v     delta  0. in
-  let lwd = width_value `thick in
-  let area = `O { P.o with P.width = lwd } in
-  let render_circle c r =
-    I.cut ~area (P.empty >> P.circle c r) (I.const Color.black)
-  in
-  let font_size = 0.3 in
-  let font = {
-    Font.name = "Helvetica" ;
-    slant = `Normal ;
-    weight = `W400 ;
-    size = font_size ;
-  }
-  in
-  let render_text txt =
-    let glyphs =
-      String.fold txt ~init:[] ~f:(fun acc c -> Char.to_int c :: acc)
-      |> List.rev
-    in
-    let w = Font_utils.text_width font_size txt in
-    (* let size = V2.v w 1. in *)
-    I.cut_glyphs font glyphs (I.const Color.black)
-    |> I.move (V2.v (-. w /. 2.) 0.)
-    (* |> I.blend (rectangle ~area ~center:V2.zero ~size) *)
-  in
-  object
-    method image =
-      let circle_a = render_circle center_a r in
-      let circle_b = render_circle center_b r in
-      let text_ab = render_text (Int.to_string n_ab) in
-      let text_a = render_text (Int.to_string n_a) in
-      let text_b = render_text (Int.to_string n_b) in
-      List.fold
-        [ circle_a ; circle_b ;
-          text_ab ;
-          I.move (V2.v (-. r) 0.) text_a ;
-          I.move (V2.v r 0.) text_b ]
-        ~init:I.void
-        ~f:I.blend
-    method bbox =
-      Box2.v_mid V2.zero (V2.v (2. *. (delta +. r) +. lwd) (2. *. r +. lwd))
-  end
+  stack [
+    circle center_a r ;
+    circle center_b r ;
+    text (Int.to_string n_ab) ;
+    text ~pos:(V2.v (-. r) 0.) (Int.to_string n_a) ;
+    text ~pos:(V2.v r 0.)      (Int.to_string n_b) ;
+  ]
 
 let render croquis fn =
   let c = 100. in
@@ -164,5 +175,5 @@ let render croquis fn =
 
 let demo () =
   (* let croquis = genome () in *)
-  let croquis = new venn_diagram2 ~compare:Int.compare ~a:[1;2] ~b:[1] () in
+  let croquis = venn_diagram2 ~compare:Int.compare ~a:[1;2] ~b:[1] () in
   render croquis "rien.pdf"

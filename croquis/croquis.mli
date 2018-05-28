@@ -25,18 +25,16 @@ type arrow_style = [
   | `triangle
 ]
 
-class path :
+val path :
   ?vp:Viewport.t ->
   ?col:Color.t ->
   ?tip:arrow_style ->
   v2 -> v2 list ->
-  object
-    inherit t
-    method start : v2
-    method _end_ : v2
-  end
+  < t ;
+    start : v2 ;
+    _end_ : v2 >
 
-class venn_diagram2 :
+val venn_diagram2 :
   ?a_label:string ->
   ?b_label:string ->
   compare:('a -> 'a -> int) ->
