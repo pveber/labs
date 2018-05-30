@@ -147,6 +147,28 @@ let venn_diagram2 ?a_label ?b_label ~compare ~a ~b () =
     text ~pos:(V2.v r 0.)      (Int.to_string n_b) ;
   ]
 
+let intersection3 (type s) ~compare ~a ~b ~c =
+  let module E = struct type t = s let compare = compare end in
+  let module S = Caml.Set.Make(E) in
+  let set_a = S.of_list a in
+  let set_b = S.of_list b in
+  let set_c = S.of_list c in
+  S.cardinal (S.inter set_a set_b),
+  S.cardinal (S.diff set_a set_b),
+  S.cardinal (S.diff set_b set_a)
+
+let venn_diagram3 () =
+  let delta = 1. in
+  let r = 1.8 in
+  let center_a = V2.v 0. delta in
+  let center_b = V2.v (delta *. sqrt 3. /. 2.) (-. delta /. 2.) in
+  let center_c = V2.v (-. delta *. sqrt 3. /. 2.) (-. delta /. 2.) in
+  stack [
+    circle center_a r ;
+    circle center_b r ;
+    circle center_c r ;
+  ]
+
 let render croquis fn =
   let c = 100. in
   let view = croquis#bbox in
@@ -175,5 +197,6 @@ let render croquis fn =
 
 let demo () =
   (* let croquis = genome () in *)
-  let croquis = venn_diagram2 ~compare:Int.compare ~a:[1;2] ~b:[1] () in
+  (* let croquis = venn_diagram2 ~compare:Int.compare ~a:[1;2] ~b:[1] () in *)
+  let croquis = venn_diagram3 () in
   render croquis "rien.pdf"
