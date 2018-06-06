@@ -16,6 +16,9 @@ module Record = struct
   [@@deriving sexp]
 
   let loc r = GLoc.{ chr = r.seqname ; st = r.start_pos ; ed = r.stop_pos }
+  let attribute_exn r k =
+    List.Assoc.find_exn ~equal:String.equal r.attributes k
+    |> List.hd_exn
 end
 
 module Item = struct
