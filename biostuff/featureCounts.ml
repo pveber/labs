@@ -4,8 +4,8 @@ module Tsv = struct
   type t = {
     id : string ;
     chr : string ;
-    st : int ;
-    ed : int ;
+    lo : int ;
+    hi : int ;
     strand : string ;
     length : int ;
     count : int ;
