@@ -102,3 +102,24 @@ module LMap : sig
       in [lmap] whose GLoc.t intersects with [loc]. *)
 end
 
+module LAssoc : sig
+  (** Sorted association list *)
+  type 'a t = private (GLoc.t * 'a) list
+
+  val of_alist : (GLoc.t * 'a) list -> 'a t
+
+  val of_list : 'a list -> f:('a -> GLoc.t) -> 'a t
+
+  val to_alist : 'a t -> (GLoc.t * 'a) list
+
+  val filter :
+    'a t ->
+    f:(GLoc.t -> 'a -> bool) ->
+    'a t
+
+  val fold_neighbors :
+    'a t -> 'b t ->
+    init:(GLoc.t -> 'a -> 'c) ->
+    f:(GLoc.t -> 'b -> 'c -> 'c) ->
+    'c t
+end

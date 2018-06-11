@@ -167,3 +167,60 @@ module LSet = struct
 
 end
 
+
+module LAssoc = struct
+  type 'a t = (GLoc.t * 'a) list
+
+  let compare (x, _) (y, _) = GLoc.compare x y
+
+  let of_alist xs =
+    List.sort ~compare xs
+
+  let of_list xs ~f = of_alist (List.map xs ~f:(fun x -> f x, x))
+
+  let to_alist xs = xs
+
+  let filter xs ~f = List.filter xs ~f:(fun (loc, value) -> f loc value)
+
+  let fold_neighbors xs ys ~init ~f =
+    let rec main_loop acc xs ys =
+      match xs with
+      | [] -> List.rev acc
+      | ((x_loc, x_val) as x) :: xs_tail ->
+        let ys = drop_until ys x_loc in
+        let r = neighbor_loop x ys ~init:(init x_loc x_val) in
+        let acc = (fst x, r) :: acc in
+        main_loop acc xs_tail ys
+
+    and drop_until ys x_loc =
+      match ys with
+      | [] -> []
+      | (y_loc, y_val) :: tail_ys ->
+        if GLoc.strictly_before y_loc x_loc then drop_until tail_ys x_loc
+        else ys
+
+    and neighbor_loop ((x_loc, x_val) as x) ys ~init =
+      match ys with
+      | [] -> init
+      | (y_loc, y_val) :: tail_ys ->
+        if GLoc.intersects y_loc x_loc then
+          neighbor_loop x tail_ys ~init:(f y_loc y_val init)
+        else init
+    in
+    main_loop [] xs ys
+
+  let example1 = [
+    GLoc.{ chr = "a" ; lo = 0 ; hi = 4 }, 1 ;
+    GLoc.{ chr = "a" ; lo = 40 ; hi = 400 }, 1 ;
+    GLoc.{ chr = "a" ; lo = 90 ; hi = 110 }, 1 ;
+    GLoc.{ chr = "a" ; lo = 91 ; hi = 92 }, 1 ;
+    GLoc.{ chr = "b" ; lo = 91 ; hi = 92 }, 1 ;
+  ]
+
+  let%test "fold_neighbors_1" =
+    Int.(
+      fold_neighbors example1 example1 ~init:(fun _ _ -> 0) ~f:(fun _ _ acc -> acc + 1)
+      |> List.sum (module Int) ~f:(fun (_, d) -> d)
+         = 11
+    )
+end
