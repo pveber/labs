@@ -48,10 +48,11 @@ module Selection : sig
 
 end
 
-
 (** A set of locations (e.g. a set of gene loci) *)
 module LSet : sig
   type t
+
+  val empty : t
 
   val to_stream : t -> GLoc.t Stream.t
   val of_stream : GLoc.t Stream.t -> t
@@ -77,6 +78,10 @@ end
 (** A set of locations with an attached value on each of them *)
 module LMap : sig
   type 'a t
+
+  val empty : 'a t
+
+  val add : 'a t -> GLoc.t -> 'a -> 'a t
 
   val to_stream : 'a t -> (GLoc.t * 'a) Stream.t
   val of_stream : (GLoc.t * 'a) Stream.t -> 'a t

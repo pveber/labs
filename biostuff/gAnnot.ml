@@ -140,12 +140,19 @@ module LMap = struct
     Stream.iter ~f:(fun (loc, value) -> Accu.add accu loc (loc, value)) e ;
     Map.of_stream (Accu.stream accu)
 
+  let add m k v =
+    let chr = k.GLoc.chr  in
+    let t = Option.value ~default:T.empty (Map.find m chr) in
+    let t = T.(add t ~data:v ~low:k.lo ~high:k.hi) in
+    Map.set m chr t
 end
 
 module LSet = struct
   module T = Biocaml_unix.Interval_tree
 
   type t = unit T.t Map.t
+
+  let empty = Map.empty
 
   let intersects = LMap.intersects
 
