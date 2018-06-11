@@ -15,6 +15,7 @@ module Record : sig
   [@@deriving sexp]
 
   val loc : t -> GLoc.t
+  val length : t -> int
   val attribute_exn : t -> string -> string
 end
 

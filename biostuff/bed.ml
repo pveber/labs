@@ -87,7 +87,7 @@ module Bed3 = struct
       chromEnd : int ;
     }
 
-    let loc r = GLoc.{ chr = r.chrom ; st = r.chromStart ; ed = r.chromEnd }
+    let loc r = GLoc.{ chr = r.chrom ; lo = r.chromStart ; hi = r.chromEnd }
 
     let from_fields = function
       | chrom :: chromStart :: chromEnd :: _ ->
@@ -114,7 +114,7 @@ module Bed4 = struct
       name : string ;
     }
 
-    let loc r = GLoc.{ chr = r.chrom ; st = r.chromStart ; ed = r.chromEnd }
+    let loc r = GLoc.{ chr = r.chrom ; lo = r.chromStart ; hi = r.chromEnd }
 
     let from_fields = function
       | chrom :: chromStart :: chromEnd :: name :: _ ->
@@ -142,7 +142,7 @@ module Bed5 = struct
       score : float ;
     }
 
-    let loc r = GLoc.{ chr = r.chrom ; st = r.chromStart ; ed = r.chromEnd }
+    let loc r = GLoc.{ chr = r.chrom ; lo = r.chromStart ; hi = r.chromEnd }
 
     let from_fields = function
       | chrom :: chromStart :: chromEnd :: name :: score :: _ ->
@@ -178,7 +178,7 @@ module Bed6 = struct
       strand : strand ;
     }
 
-    let loc r = GLoc.{ chr = r.chrom ; st = r.chromStart ; ed = r.chromEnd }
+    let loc r = GLoc.{ chr = r.chrom ; lo = r.chromStart ; hi = r.chromEnd }
 
     let from_fields = function
       | chrom :: chromStart :: chromEnd :: name :: score :: strand :: _ ->

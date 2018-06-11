@@ -17,13 +17,13 @@ module Selection = struct
   type t = Iset.t Map.t
 
   let empty = Map.empty
-  let add sel GLoc.{ chr ; st ; ed } =
+  let add sel GLoc.{ chr ; lo ; hi } =
     let set_chr =
       match Map.find sel chr with
       | None -> Iset.empty
       | Some s -> s
     in
-    let set_chr = Iset.add_range set_chr st ed in
+    let set_chr = Iset.add_range set_chr lo hi in
     Map.set sel ~key:chr ~data:set_chr
 
   let inter u v =
@@ -56,25 +56,25 @@ module Selection = struct
   let size x =
     Map.fold x ~init:0 ~f:(fun ~key:_ ~data:set accu -> Iset.cardinal set + accu)
 
-  let overlap sel GLoc.{ chr ; st ; ed } = Iset.(
+  let overlap sel GLoc.{ chr ; lo ; hi } = Iset.(
       match Map.find sel chr with
       | Some x ->
-        inter (add_range empty st ed) x
+        inter (add_range empty lo hi) x
         |> cardinal
       | None -> 0
     )
 
-  let intersects sel GLoc.{ chr ; st ; ed } =
+  let intersects sel GLoc.{ chr ; lo ; hi } =
     Option.value_map
       (Map.find sel chr)
       ~default:false
-      ~f:(fun x -> Iset.intersects_range x st ed)
+      ~f:(fun x -> Iset.intersects_range x lo hi)
 
   let to_stream sel =
     Map.to_stream sel
     |> Stream.map ~f:(fun (chr, s) ->
-        Stream.map (Iset.to_stream s) ~f:(fun (st, ed) ->
-            GLoc.{ chr ; st ; ed }
+        Stream.map (Iset.to_stream s) ~f:(fun (lo, hi) ->
+            GLoc.{ chr ; lo ; hi }
           )
       )
     |> Stream.concat
@@ -84,7 +84,7 @@ module Selection = struct
       Accu.create
         ~bin:(fun x -> x.GLoc.chr)
         ~zero:Iset.empty
-        ~add:(fun GLoc.{ st ; ed } x -> Iset.add_range x st ed)
+        ~add:(fun GLoc.{ lo ; hi } x -> Iset.add_range x lo hi)
         ()
     in
     Stream.iter ~f:(fun loc -> Accu.add accu loc loc) e ;
@@ -96,34 +96,36 @@ module LMap = struct
 
   type 'a t = 'a T.t Map.t
 
-  let intersects lmap { GLoc.chr ; st ; ed }  =
+  let empty = Map.empty
+
+  let intersects lmap { GLoc.chr ; lo ; hi }  =
     Option.value_map
       (Map.find lmap chr)
       ~default:false
-      ~f:(fun x -> T.intersects x ~low:st ~high:ed)
+      ~f:(fun x -> T.intersects x ~low:lo ~high:hi)
 
-  let closest lmap { GLoc.chr ; st ; ed } =
+  let closest lmap { GLoc.chr ; lo ; hi } =
     Option.bind
       (Map.find lmap chr)
       ~f:(fun x ->
           try
-            let st, ed, label, d = T.find_closest st ed x in
-            Some ({ GLoc.chr ; st ; ed }, label, d)
+            let lo, hi, label, d = T.find_closest lo hi x in
+            Some ({ GLoc.chr ; lo ; hi }, label, d)
           with T.Empty_tree -> None
         )
 
-  let intersecting_elems lmap { GLoc.chr ; st ; ed } =
+  let intersecting_elems lmap { GLoc.chr ; lo ; hi } =
     match Map.find lmap chr with
     | Some x ->
-      T.find_intersecting_elem st ed x
-      /@ (fun (st, ed, x) -> { GLoc.chr ; st ; ed }, x)
+      T.find_intersecting_elem lo hi x
+      /@ (fun (st, hi, x) -> { GLoc.chr ; lo ; hi }, x)
     | None -> Stream.empty ()
 
   let to_stream lmap =
     (Map.to_stream lmap)
     /@ (fun (chr, t) ->
         Stream.map
-          ~f:(fun (st, ed, x) -> { GLoc.chr ; st ; ed }, x)
+          ~f:(fun (lo, hi, x) -> { GLoc.chr ; lo ; hi }, x)
           (T.to_stream t))
     |> Stream.concat
 
@@ -132,7 +134,7 @@ module LMap = struct
       Accu.create
         ~bin:(fun { GLoc.chr } -> chr)
         ~zero:T.empty
-        ~add:(fun ({ GLoc.st ; ed }, v) -> T.add ~data:v ~low:st ~high:ed)
+        ~add:(fun ({ GLoc.lo ; hi }, v) -> T.add ~data:v ~low:lo ~high:hi)
         ()
     in
     Stream.iter ~f:(fun (loc, value) -> Accu.add accu loc (loc, value)) e ;
