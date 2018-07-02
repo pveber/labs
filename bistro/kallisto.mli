@@ -1,5 +1,5 @@
-open Bistro.Std
-open Bistro_bioinfo.Std
+open Bistro
+open Bistro_bioinfo
 
 class type index = object
   inherit binary_file
@@ -20,9 +20,12 @@ val index : fasta workflow list -> index workflow
 val quant :
   ?bootstrap_samples:int ->
   ?threads:int ->
+  ?fragment_length:float ->
+  ?sd:float ->
   index workflow ->
-  [`fq of 'a fastq workflow | `fq_gz of 'a fastq gz workflow] ->
-  [`fq of 'a fastq workflow | `fq_gz of 'a fastq gz workflow] ->
+  fq1:[`fq of 'a fastq workflow | `fq_gz of 'a fastq gz workflow] ->
+  ?fq2:[`fq of 'a fastq workflow | `fq_gz of 'a fastq gz workflow] ->
+  unit ->
   [`kallisto_output] directory workflow
 
 val abundance : ([`kallisto_output], abundance_table) selector

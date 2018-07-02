@@ -2,8 +2,8 @@
     the produced fastq file has incorrect syntax (reads that are
     shorter than the quality read. *)
 
-open Bistro.Std
-open Bistro_bioinfo.Std
+open Bistro
+open Bistro_bioinfo
 
 type _ tbool =
   | True  : [`True] tbool
@@ -44,7 +44,7 @@ val art_illumina :
   sam_output:'c tbool ->
   'rm read_model ->
   [< `Coverage_fold of float | `Read_count of int ] ->
-  Bistro_bioinfo.Std.fasta Bistro.Std.workflow ->
+  fasta workflow ->
   < aln : 'a;
     errfree_sam : 'b;
     read_model : 'rm;

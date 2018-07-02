@@ -1,6 +1,6 @@
 open Core
-open Bistro.Std
-open Bistro.EDSL
+open Bistro
+open Shell_dsl
 
 class type index = object
   inherit binary_file
@@ -19,7 +19,7 @@ end
 let env = docker_image ~account:"pveber" ~name:"kallisto" ~tag:"0.43.0" ()
 
 let index fas =
-  workflow ~descr:"kallisto-index" [
+  shell ~descr:"kallisto-index" [
     cmd "kallisto index" ~env [
       opt "-i" ident dest ;
       list ~sep:" " dep fas ;
@@ -34,15 +34,22 @@ let fq_input = function
   | `fq_gz x -> psgunzip x
   | `fq x -> dep x
 
-let quant ?bootstrap_samples ?threads idx fq1 fq2 =
-  workflow ~descr:"kallisto-quant" ?np:threads [
+let quant ?bootstrap_samples ?threads ?fragment_length ?sd idx ~fq1 ?fq2 () =
+  shell ~descr:"kallisto-quant" ?np:threads [
     cmd "kallisto quant" ~env [
       opt "-i" dep idx ;
       opt "-o" ident dest ;
       opt "-t" ident np ;
       option (opt "-b" int) bootstrap_samples ;
       fq_input fq1 ;
-      fq_input fq2 ;
+      option fq_input fq2 ;
+      option (opt "-l" float) fragment_length ;
+      option (opt "-s" float) sd ;
+      string (
+        match fq2 with
+        | None -> "--single"
+        | Some _ -> ""
+      ) ;
     ]
   ]
 

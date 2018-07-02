@@ -1,6 +1,6 @@
 open Core_kernel
-open Bistro.Std
-open Bistro_bioinfo.Std
+open Bistro
+open Bistro_bioinfo
 
 let%bistro[@version 2] bamstats (bam : bam workflow) =
   let open Biocaml_ez in

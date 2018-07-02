@@ -1,31 +1,31 @@
 open Base
 open Bistro
 
-type t = Template.t
+type t = template
 
-type expr = Template.t
+type expr = t
 
-type arg = Template.t
+type arg = t
 
-let make xs = Template.(seq ~sep:"\n" xs)
+let make xs = Template_dsl.(seq ~sep:"\n" xs)
 
-let source s = Template.string s
+let source s = Template_dsl.string s
 
-let dest = Template.(quote ~using:'"' dest)
+let dest = Template_dsl.(quote ~using:'"' dest)
 
-let tmp = Template.(quote ~using:'"' tmp)
+let tmp = Template_dsl.(quote ~using:'"' tmp)
 
 let string s =
-  Template.(quote ~using:'"' (string s))
+  Template_dsl.(quote ~using:'"' (string s))
 
-let int i = Template.int i
+let int i = Template_dsl.int i
 
-let float f = Template.float f
+let float f = Template_dsl.float f
 
-let dep w = Template.(quote ~using:'"' (dep w))
+let dep w = Template_dsl.(quote ~using:'"' (dep w))
 
 let call_gen fn arg xs  =
-  let open Template in
+  let open Template_dsl in
   seq ~sep:"" [
     string fn ;
     string "(" ;
@@ -37,23 +37,23 @@ let call fn args = call_gen fn Fn.id args
 
 let vector f xs = call_gen "c" f xs
 
-let ints xs = vector Template.int xs
-let floats xs = vector Template.float xs
+let ints xs = vector Template_dsl.int xs
+let floats xs = vector Template_dsl.float xs
 let strings xs = vector string xs
 let deps xs = vector dep xs
 
 let arg ?l e =
-  let open Template in
+  let open Template_dsl in
   match l with
   | None -> e
   | Some label ->
     seq ~sep:"" [ string label ; string "=" ; e ]
 
 let assign var e =
-  let open Template in
+  let open Template_dsl in
   seq ~sep:" " [ string var ; string "<-" ; e ]
 
 let workflow ?descr ?np ?mem ?env exprs =
-  EDSL.workflow ?descr ?np ?mem EDSL.[
+  shell ?descr ?np ?mem Shell_dsl.[
     cmd "Rscript" ?env [ file_dump (make exprs) ] ;
   ]

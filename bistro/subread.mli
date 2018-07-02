@@ -2,8 +2,8 @@
    http://subread.sourceforge.net/
 *)
 
-open Bistro.Std
-open Bistro_bioinfo.Std
+open Bistro
+open Bistro_bioinfo
 
 class type count_table = object
   inherit tsv

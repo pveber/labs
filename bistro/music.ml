@@ -1,4 +1,5 @@
-open Bistro.EDSL
+open Bistro
+open Shell_dsl
 
 let env = docker_image ~account:"pveber" ~name:"music" ~tag:"6613c5" ()
 
@@ -24,7 +25,7 @@ let prepare x label =
   ]
 
 let run ~mappability ~l_mapp ~begin_l ~end_l ~step ~treatment ~control =
-  workflow ~descr:"music" [
+  shell ~descr:"music" [
     and_list (prepare treatment "treatment") ;
     and_list (prepare control "control") ;
     mkdir_p dest ;

@@ -1,14 +1,14 @@
 open Core
-open Bistro.Std
-open Bistro_bioinfo.Std
-open Bistro.EDSL
+open Bistro
+open Bistro_bioinfo
+open Shell_dsl
 
 let env = docker_image ~account:"pveber" ~name:"hisat2" ~tag:"2.1.0" ()
 
 type index = [`hisat2_index] directory
 
 let hisat2_build ?large_index ?noauto ?packed ?bmax ?bmaxdivn ?dcv ?nodc ?noref ?justref ?offrate ?ftabchars ?seed ?cutoff fa =
-  workflow ~descr:"hisat2-build" ~mem:(8 * 1024) ~np:8 [
+  shell ~descr:"hisat2-build" ~mem:(8 * 1024) ~np:8 [
     mkdir_p dest ;
     cmd "hisat2-build" ~env [
       option (flag string "--large-index") large_index ;
@@ -58,7 +58,7 @@ let hisat2
         opt "-2" (list dep ~sep:",") fqs2
       ]
   in
-  workflow ~descr:"hisat2" ~mem:(4 * 1024) ~np:8 [
+  shell ~descr:"hisat2" ~mem:(4 * 1024) ~np:8 [
     cmd "hisat2" ~env [
       option (opt "--skip" int) skip ;
       option (opt "--qupto" int) qupto ;

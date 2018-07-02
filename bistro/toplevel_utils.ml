@@ -1,11 +1,8 @@
-open Bistro_utils
-open Bistro.Std
+open Bistro
 
 let with_workflow w ~f =
-  let open Term in
-  run ~keep_all:true ~np:8 ~mem:(`GB 8) (
-    pure (fun (Term.Path p) -> f p) $ pureW w
-  )
+  eval_expr_exn ~np:8 ~mem:(`GB 8) Expr.(dep (pureW w))
+  |> f
 
 let path w =
   with_workflow w ~f:(fun x -> x)

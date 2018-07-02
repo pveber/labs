@@ -1,5 +1,5 @@
-open Bistro.Std
-open Bistro_bioinfo.Std
+open Bistro
+open Bistro_bioinfo
 
 (* val run :
  *   treatment:sam workflow ->

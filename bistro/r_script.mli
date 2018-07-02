@@ -5,7 +5,7 @@ type expr
 type arg
 
 
-val make : expr list -> Template.t
+val make : expr list -> template
 
 val dest : expr
 val tmp : expr

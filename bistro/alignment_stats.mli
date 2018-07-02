@@ -1,5 +1,5 @@
-open Bistro.Std
-open Bistro_bioinfo.Std
+open Bistro
+open Bistro_bioinfo
 
 val bamstats : bam workflow -> Biocaml_unix.Bamstats.t sexp_value workflow
 

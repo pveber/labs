@@ -1,4 +1,5 @@
-open Bistro.EDSL
+open Bistro
+open Shell_dsl
 
 type 'a format = NarrowPeak | BroadPeak | Bed | Gff
 
@@ -31,7 +32,7 @@ let idr
     ~input_file_type ?idr_threshold ?soft_idr_threshold
     ?peak_merge_method ?random_seed ?peak_list
     sample1 sample2 =
-  workflow ~descr:"Idr.idr" [
+  shell ~descr:"Idr.idr" [
     mkdir_p dest ;
     cmd "idr" ~env [
       opt "--input-file-type" file_format input_file_type ;

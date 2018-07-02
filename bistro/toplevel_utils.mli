@@ -1,4 +1,4 @@
-open Bistro.Std
+open Bistro
 
 val path : _ workflow -> string
 val rm : _ workflow -> unit

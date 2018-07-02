@@ -1,6 +1,6 @@
-open Bistro.Std
-open Bistro_bioinfo.Std
-open Bistro.EDSL
+open Bistro
+open Bistro_bioinfo
+open Shell_dsl
 
 let env = docker_image ~account:"pveber" ~name:"art" ~tag:"20160605" ()
 
@@ -42,7 +42,7 @@ and paired_end = {
 }
 
 let args_of_read_model
-  : type u. u read_model -> Bistro.Template.t list
+  : type u. u read_model -> template list
   = function
     | Single_end len ->
       [ opt "--len" int len ]
@@ -69,7 +69,7 @@ let art_illumina
       sam : 'c ;
       read_model : 'rm > art_illumina_output directory workflow
   =
-  workflow ~descr:"art_illumina" [
+  shell ~descr:"art_illumina" [
     mkdir_p dest ;
     cmd "art_illumina" ~env [
       option (opt "--qprof1" string) qprof1 ;

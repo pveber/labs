@@ -1,4 +1,4 @@
-module T = Bistro.Template
+module T = Bistro.Template_dsl
 
 let int = T.int
 

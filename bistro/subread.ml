@@ -1,6 +1,6 @@
 open Core
-open Bistro.Std
-open Bistro.EDSL
+open Bistro
+open Shell_dsl
 
 let env = docker_image ~account:"pveber" ~name:"subread" ~tag:"1.6.0" ()
 
@@ -20,7 +20,7 @@ let featureCounts
     ?feature_type ?attribute_type ?strandness
     ?q ?nthreads
     gff mapped_reads =
-  workflow ~descr:"featureCounts" ~np:(Option.value ~default:1 nthreads) [
+  shell ~descr:"featureCounts" ~np:(Option.value ~default:1 nthreads) [
     mkdir_p dest ;
     cmd "featureCounts" ~env [
       option (opt "-t" string) feature_type ;
