@@ -2,9 +2,9 @@ open Base
 
 type t = Range.t list
 
-let check_invariant : t -> bool = function
+let rec check_invariant : t -> bool = function
   | [] | _ :: [] -> true
-  | u :: (v :: t) -> u.hi < u.lo
+  | u :: (v :: _ as l) -> u.hi < v.lo && check_invariant l
 
 let empty = []
 
@@ -26,7 +26,7 @@ let rec add xs r =
 
 let%test "Interval_union_add_1" =
   List.fold
-    Range.[ 2, 4 ; 3, 5 ; 1, 8 ; 45, 47 ; 45, 45 ]
+    [ 2, 4 ; 3, 5 ; 1, 8 ; 45, 47 ; 45, 45 ]
     ~init:empty
     ~f:(fun acc (lo, hi) -> add acc (Range.make ~lo ~hi))
   |> check_invariant

@@ -84,7 +84,7 @@ module Selection = struct
       Accu.create
         ~bin:(fun x -> x.GLoc.chr)
         ~zero:Iset.empty
-        ~add:(fun GLoc.{ lo ; hi } x -> Iset.add_range x lo hi)
+        ~add:GLoc.(fun loc x -> Iset.add_range x loc.lo loc.hi)
         ()
     in
     Stream.iter ~f:(fun loc -> Accu.add accu loc loc) e ;
@@ -118,7 +118,7 @@ module LMap = struct
     match Map.find lmap chr with
     | Some x ->
       T.find_intersecting_elem lo hi x
-      /@ (fun (st, hi, x) -> { GLoc.chr ; lo ; hi }, x)
+      /@ (fun (lo, hi, x) -> { GLoc.chr ; lo ; hi }, x)
     | None -> Stream.empty ()
 
   let to_stream lmap =
@@ -132,9 +132,9 @@ module LMap = struct
   let of_stream e =
     let accu =
       Accu.create
-        ~bin:(fun { GLoc.chr } -> chr)
+        ~bin:GLoc.(fun l -> l.chr)
         ~zero:T.empty
-        ~add:(fun ({ GLoc.lo ; hi }, v) -> T.add ~data:v ~low:lo ~high:hi)
+        ~add:GLoc.(fun (l, v) -> T.add ~data:v ~low:l.lo ~high:l.hi)
         ()
     in
     Stream.iter ~f:(fun (loc, value) -> Accu.add accu loc (loc, value)) e ;
@@ -144,7 +144,7 @@ module LMap = struct
     let chr = k.GLoc.chr  in
     let t = Option.value ~default:T.empty (Map.find m chr) in
     let t = T.(add t ~data:v ~low:k.lo ~high:k.hi) in
-    Map.set m chr t
+    Map.set m ~key:chr ~data:t
 end
 
 module LSet = struct
@@ -195,11 +195,11 @@ module LAssoc = struct
     and drop_until ys x_loc =
       match ys with
       | [] -> []
-      | (y_loc, y_val) :: tail_ys ->
+      | (y_loc, _) :: tail_ys ->
         if GLoc.strictly_before y_loc x_loc then drop_until tail_ys x_loc
         else ys
 
-    and neighbor_loop ((x_loc, x_val) as x) ys ~init =
+    and neighbor_loop ((x_loc, _) as x) ys ~init =
       match ys with
       | [] -> init
       | (y_loc, y_val) :: tail_ys ->

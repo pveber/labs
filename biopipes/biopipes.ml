@@ -6,10 +6,6 @@ include Pipes_unix.Pipe
 let ( %% ) f g = Fn.(flip compose) f g
 let ( >>= ) = bind
 
-let ok_or_failwith = function
-  | Ok x -> x
-  | Error (`Msg msg) -> failwith msg
-
 let lines () =
   let open Lines.Parser in
   loop step initial_state
