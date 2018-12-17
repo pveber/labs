@@ -36,12 +36,12 @@ type arrow_style = [
   | `triangle
 ]
 
-type width = [
+type thickness = [
   | `normal
   | `thick
 ]
 
-let width_value = function
+let thickness_value = function
   | `normal -> 0.01
   | `thick -> 0.02
 
@@ -49,17 +49,17 @@ let width_value = function
  *   | `none -> p
  *   | `triangle *)
 
-let circle ?(col = Color.black) ?(width = `normal) ~center ~radius =
+let circle ?(col = Color.black) ?(thickness = `normal) ~center ~radius () =
   object
     method image =
-      let area = `O { P.o with P.width = width_value width } in
-      I.cut ~area (P.empty >> P.circle center radius) (I.const col)
+      let area = `O { P.o with P.width = thickness_value thickness } in
+      I.cut ~area (P.empty |> P.circle center radius) (I.const col)
     method bbox =
-      let r = 2. *. radius +. width_value width in
+      let r = 2. *. radius +. thickness_value thickness in
       Box2.v_mid center (V2.v r r)
   end
 
-let rectangle ?(col = Color.black) ?(width = `normal) ~center ~size =
+let rectangle ?(col = Color.black) ?(thickness = `normal) ~center ~size () =
   let dx = V2.x size /. 2. in
   let dy = V2.y size /. 2. in
   let sw = V2.add center (V2.v (-. dx) (-. dy)) in
@@ -68,10 +68,10 @@ let rectangle ?(col = Color.black) ?(width = `normal) ~center ~size =
   let se = V2.add center (V2.v (   dx) (-. dy)) in
   object
     method image =
-      let area = `O { P.o with P.width = width_value width } in
+      let area = `O { P.o with P.width = thickness_value thickness } in
       let p =
-        P.empty >> P.sub sw >> P.line nw
-        >> P.line ne >> P.line se >> P.line sw
+        P.empty |> P.sub sw |> P.line nw
+        |> P.line ne |> P.line se |> P.line sw
       in
       I.cut ~area p (I.const col)
     method bbox = Box2.of_pts sw ne
@@ -107,13 +107,13 @@ let text ?(pos = V2.zero) txt =
     method bbox = Box2.v_mid pos (V2.v w 1.) (* FIXME *)
   end
 
-let path ?(vp = Viewport.id) ?(col = Color.black) ?(tip = `none) origin points =
+let path ?(vp = Viewport.id) ?(col = Color.black) ?tip:(_tip = `none) origin points =
   object (s)
     method image =
       let path =
         List.fold points
-          ~init:(P.empty >> P.sub (Viewport.scale vp origin))
-          ~f:(fun acc p -> acc >> P.line (Viewport.scale vp p))
+          ~init:(P.empty |> P.sub (Viewport.scale vp origin))
+          ~f:(fun acc p -> acc |> P.line (Viewport.scale vp p))
       in
       I.cut path (I.const col)
     method bbox = Box2.of_pts s#start s#_end_
@@ -133,40 +133,30 @@ let intersection2 (type s) ~compare ~a ~b =
   S.cardinal (S.diff set_a set_b),
   S.cardinal (S.diff set_b set_a)
 
-let venn_diagram2 ?a_label ?b_label ~compare ~a ~b () =
+let venn_diagram2 ~compare ~a ~b () =
   let n_ab, n_a, n_b = intersection2 ~compare ~a ~b in
   let delta = 1. in
   let r = 1.8 in
   let center_a = V2.v (-. delta) 0. in
   let center_b = V2.v     delta  0. in
   stack [
-    circle center_a r ;
-    circle center_b r ;
+    circle ~center:center_a ~radius:r () ;
+    circle ~center:center_b ~radius:r () ;
     text (Int.to_string n_ab) ;
     text ~pos:(V2.v (-. r) 0.) (Int.to_string n_a) ;
     text ~pos:(V2.v r 0.)      (Int.to_string n_b) ;
   ]
 
-let intersection3 (type s) ~compare ~a ~b ~c =
-  let module E = struct type t = s let compare = compare end in
-  let module S = Caml.Set.Make(E) in
-  let set_a = S.of_list a in
-  let set_b = S.of_list b in
-  let set_c = S.of_list c in
-  S.cardinal (S.inter set_a set_b),
-  S.cardinal (S.diff set_a set_b),
-  S.cardinal (S.diff set_b set_a)
-
 let venn_diagram3 () =
   let delta = 1. in
-  let r = 1.8 in
+  let radius = 1.8 in
   let center_a = V2.v 0. delta in
   let center_b = V2.v (delta *. sqrt 3. /. 2.) (-. delta /. 2.) in
   let center_c = V2.v (-. delta *. sqrt 3. /. 2.) (-. delta /. 2.) in
   stack [
-    circle center_a r ;
-    circle center_b r ;
-    circle center_c r ;
+    circle ~center:center_a ~radius () ;
+    circle ~center:center_b ~radius () ;
+    circle ~center:center_c ~radius () ;
   ]
 
 let render croquis fn =

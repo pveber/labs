@@ -32,7 +32,7 @@ let idr
     ~input_file_type ?idr_threshold ?soft_idr_threshold
     ?peak_merge_method ?random_seed ?peak_list
     sample1 sample2 =
-  shell ~descr:"Idr.idr" [
+  Workflow.shell ~descr:"Idr.idr" [
     mkdir_p dest ;
     cmd "idr" ~env [
       opt "--input-file-type" file_format input_file_type ;
@@ -47,5 +47,5 @@ let idr
     ]
   ]
 
-let items = selector [ "items.tsv" ]
-let figure = selector [ "items.tsv.png" ]
+let items x = Workflow.select x [ "items.tsv" ]
+let figure x = Workflow.select x [ "items.tsv.png" ]

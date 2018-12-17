@@ -4,11 +4,11 @@ type t = [ `Html ] Tyxml_html.elt
 
 let bootstrap_head t =
   let open Tyxml_html in
-  head (title (pcdata t)) [
+  head (title (txt t)) [
     link ~rel:[`Stylesheet] ~href:"http://netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css" () ;
     link ~rel:[`Stylesheet] ~href:"http://netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap-theme.min.css" () ;
-    script ~a:[a_src "https://code.jquery.com/jquery.js"] (pcdata "") ;
-    script ~a:[a_src "http://netdna.bootstrapcdn.com/bootstrap/3.0.2/js/bootstrap.min.js"] (pcdata "") ;
+    script ~a:[a_src "https://code.jquery.com/jquery.js"] (txt "") ;
+    script ~a:[a_src "http://netdna.bootstrapcdn.com/bootstrap/3.0.2/js/bootstrap.min.js"] (txt "") ;
   ]
 
 let make ~title:t contents =

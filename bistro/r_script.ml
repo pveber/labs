@@ -1,5 +1,6 @@
 open Base
 open Bistro
+open Bistro.Template_dsl
 
 type t = template
 
@@ -54,6 +55,6 @@ let assign var e =
   seq ~sep:" " [ string var ; string "<-" ; e ]
 
 let workflow ?descr ?np ?mem ?env exprs =
-  shell ?descr ?np ?mem Shell_dsl.[
+  Workflow.shell ?descr ?np ?mem Shell_dsl.[
     cmd "Rscript" ?env [ file_dump (make exprs) ] ;
   ]

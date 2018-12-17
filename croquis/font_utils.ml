@@ -19,15 +19,15 @@ type otf_info =
     i_kern : int Gmap.t Gmap.t;    (* Maps glyph pairs to kern adjustement. *)
     i_units_per_em : int; }
 
-let add_adv acc g adv _ = Gmap.set acc g adv
+let add_adv acc g adv _ = Gmap.set acc ~key:g ~data:adv
 
 let add_cmap acc kind (u0, u1) g =
   let acc = ref acc in
   begin match kind with
   | `Glyph_range ->
-      for i = 0 to (u1 - u0) do acc := Cmap.set !acc (u0 + i) (g + i) done;
+      for i = 0 to (u1 - u0) do acc := Cmap.set !acc ~key:(u0 + i) ~data:(g + i) done;
   | `Glyph ->
-      for u = u0 to u1 do acc := Cmap.set !acc u g done
+      for u = u0 to u1 do acc := Cmap.set !acc ~key:u ~data:g done
   end;
   !acc
 
@@ -37,7 +37,7 @@ let add_ktable acc i =
 
 let add_kpair acc g0 g1 kv =
   let m = try Gmap.find_exn acc  g0 with Caml.Not_found -> Gmap.empty in
-  Gmap.set acc g0 (Gmap.set m g1 kv )
+  Gmap.set acc ~key:g0 ~data:(Gmap.set m ~key:g1 ~data:kv )
 
 let font_info inf = 
   let i_otf = In_channel.read_all inf in
@@ -92,8 +92,8 @@ let renderable font info size text =
   let glyphs_rev, advances_rev, len = otf_kern_layout info size text in
   let glyphs, advances = List.rev glyphs_rev, List.rev advances_rev in
   let i =
-    I.const (Color.black) >>
-    I.cut_glyphs ~text ~advances font glyphs >>
+    I.const (Color.black) |>
+    I.cut_glyphs ~text ~advances font glyphs |>
     I.move V2.(0.5 * (v size size))
   in
   let size = Size2.v (len +. size) (2. *. size) in
@@ -106,5 +106,5 @@ let fname, info =
   | Error _ -> assert false
 
 let text_width size text =
-  let glyphs_rev, advances_rev, len = otf_kern_layout info size text in
+  let _glyphs_rev, _advances_rev, len = otf_kern_layout info size text in
   len

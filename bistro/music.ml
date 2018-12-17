@@ -24,14 +24,14 @@ let prepare x label =
 
   ]
 
-let run ~mappability ~l_mapp ~begin_l ~end_l ~step ~treatment ~control =
-  shell ~descr:"music" [
+let _run ~mappability ~l_mapp ~begin_l ~end_l ~step ~treatment ~control =
+  Workflow.shell ~descr:"music" [
     and_list (prepare treatment "treatment") ;
     and_list (prepare control "control") ;
     mkdir_p dest ;
     and_list [
       cd dest ;
-      cmd "MUSIC" [
+      cmd "MUSIC" ~env [
         string "-get_multiscale_broad_ERs" ;
         string "-chip" ; tmp // "treatment" // "dedup" ;
         string "-control" ; tmp // "control" // "dedup" ;

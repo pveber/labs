@@ -1,11 +1,11 @@
 open Bistro
 open Bistro_bioinfo
 
-val env : docker_image
+val env : Shell_dsl.docker_image
 
 val kissplice :
   ?max_memory:[`GB of int] ->
   k:int ->
-  'a fastq workflow ->
-  'a fastq workflow ->
-  [`kissplice] directory workflow
+  sanger_fastq pworkflow ->
+  sanger_fastq pworkflow ->
+  [`kissplice] dworkflow

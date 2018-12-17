@@ -81,7 +81,7 @@ let heatmap mat =
                   (V2.v (1. /. n) (1. /. n))
               in
               I.blend
-                (I.cut (P.empty >> P.rect r) (I.const (if mat_i_j > 0. then Color.v mat_i_j 0. 0. 1. else Color.v 0. 0. (-. mat_i_j) 1.)))
+                (I.cut (P.empty |> P.rect r) (I.const (if mat_i_j > 0. then Color.v mat_i_j 0. 0. 1. else Color.v 0. 0. (-. mat_i_j) 1.)))
                 acc
             )
         )
@@ -92,13 +92,13 @@ let render elts =
   let open Tyxml_html in
   let contents =
     List.rev_map elts ~f:(function
-        | Text s -> p [ pcdata s ]
+        | Text s -> p [ txt s ]
         | Svg svg ->
           img ~src:svg ~alt:"" ()
-        | H2 s -> h2 [ pcdata s ]
+        | H2 s -> h2 [ txt s ]
       )
   in
-  html (head (title (pcdata "evolnet")) []) (body contents)
+  html (head (title (txt "evolnet")) []) (body contents)
 
 let to_file fn doc =
   Out_channel.with_file fn ~f:(fun oc ->

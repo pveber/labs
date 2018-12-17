@@ -20,7 +20,7 @@ and paired_end = {
   matepair : bool ;
 }
 
-type 'a art_illumina_output = 'a directory
+type 'a art_illumina_output = 'a
   constraint 'a = < aln : _ ; errfree_sam : _ ; sam : _ ; read_model : _ >
 
 val art_illumina :
@@ -44,16 +44,17 @@ val art_illumina :
   sam_output:'c tbool ->
   'rm read_model ->
   [< `Coverage_fold of float | `Read_count of int ] ->
-  fasta workflow ->
+  fasta pworkflow ->
   < aln : 'a;
     errfree_sam : 'b;
     read_model : 'rm;
-    sam : 'c > art_illumina_output directory workflow
+    sam : 'c > art_illumina_output dworkflow
 
-val se_fastq : unit -> (< read_model : [`single_end] ; .. > art_illumina_output,
-                        [`sanger] fastq) selector
+val se_fastq :
+  < read_model : [`single_end] ; .. > art_illumina_output dworkflow ->
+  sanger_fastq pworkflow
 
 val pe_fastq :
   [`One | `Two] ->
-  (< read_model : [`paired_end] ; .. > art_illumina_output,
-   [`sanger] fastq) selector
+  < read_model : [`paired_end] ; .. > art_illumina_output dworkflow ->
+  sanger_fastq pworkflow

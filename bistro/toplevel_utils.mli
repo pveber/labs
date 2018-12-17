@@ -1,7 +1,7 @@
 open Bistro
 
-val path : _ workflow -> string
-val rm : _ workflow -> unit
-val browse : _ workflow -> unit
-val ls : _ #directory workflow -> unit
-val less : #text_file workflow -> unit
+val path : _ pworkflow -> string
+val rm : _ pworkflow -> unit
+val browse : _ pworkflow -> unit
+val ls : #directory pworkflow -> unit
+val less : #text_file pworkflow -> unit

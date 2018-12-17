@@ -1,4 +1,4 @@
-open Bistro
+open Bistro.Template_dsl
 
 val int : int -> template
 val string : string -> template

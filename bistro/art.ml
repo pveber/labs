@@ -27,7 +27,7 @@ let ite
     | True -> x
     | False -> y
 
-type 'a art_illumina_output = 'a directory
+type 'a art_illumina_output = 'a
   constraint 'a = < aln : _ ; errfree_sam : _ ; sam : _ ; read_model : _ >
 
 type _ read_model =
@@ -62,14 +62,14 @@ let art_illumina
     ~(aln_output : 'a tbool)
     ~(errfree_sam_output : 'b tbool)
     ~(sam_output : 'c tbool)
-    (read_model : 'rm read_model) depth (fa : fasta workflow)
+    (read_model : 'rm read_model) depth (fa : fasta pworkflow)
 
   : < aln : 'a ;
       errfree_sam : 'b ;
       sam : 'c ;
-      read_model : 'rm > art_illumina_output directory workflow
+      read_model : 'rm > art_illumina_output dworkflow
   =
-  shell ~descr:"art_illumina" [
+  Workflow.shell ~descr:"art_illumina" [
     mkdir_p dest ;
     cmd "art_illumina" ~env [
       option (opt "--qprof1" string) qprof1 ;
@@ -98,10 +98,10 @@ let art_illumina
   ]
 
 
-let se_fastq () = selector [ "sample.fq" ]
+let se_fastq x = Workflow.select x [ "sample.fq" ]
 
-let pe_fastq x =
-  selector [
+let pe_fastq x w =
+  Workflow.select w [
     match x with
     | `One -> "sample1.fq"
     | `Two -> "sample2.fq"

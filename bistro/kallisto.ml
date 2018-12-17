@@ -19,7 +19,7 @@ end
 let env = docker_image ~account:"pveber" ~name:"kallisto" ~tag:"0.43.0" ()
 
 let index fas =
-  shell ~descr:"kallisto-index" [
+  Workflow.shell ~descr:"kallisto-index" [
     cmd "kallisto index" ~env [
       opt "-i" ident dest ;
       list ~sep:" " dep fas ;
@@ -35,7 +35,7 @@ let fq_input = function
   | `fq x -> dep x
 
 let quant ?bootstrap_samples ?threads ?fragment_length ?sd idx ~fq1 ?fq2 () =
-  shell ~descr:"kallisto-quant" ?np:threads [
+  Workflow.shell ~descr:"kallisto-quant" ?np:threads [
     cmd "kallisto quant" ~env [
       opt "-i" dep idx ;
       opt "-o" ident dest ;
@@ -53,11 +53,11 @@ let quant ?bootstrap_samples ?threads ?fragment_length ?sd idx ~fq1 ?fq2 () =
     ]
   ]
 
-let abundance =
-  selector [ "abundance.tsv" ]
+let abundance x =
+  Workflow.select x [ "abundance.tsv" ]
 
 
-let%bistro merge_eff_counts ~sample_ids ~kallisto_outputs =
+let%pworkflow merge_eff_counts ~sample_ids ~kallisto_outputs =
 
   let parse_eff_counts fn =
     In_channel.read_lines fn
@@ -76,8 +76,8 @@ let%bistro merge_eff_counts ~sample_ids ~kallisto_outputs =
       )
   in
 
-  let names = parse_names (List.hd_exn [%deps kallisto_outputs]) in
-  let counts  = List.map [%deps kallisto_outputs] ~f:parse_eff_counts in
+  let names = parse_names [%eval Workflow.eval_path (List.hd_exn kallisto_outputs)] in
+  let counts  = List.map [%eval Workflow.(spawn (list kallisto_outputs) ~f:eval_path)] ~f:parse_eff_counts in
 
   let table = List.transpose_exn (names :: counts) in
 
@@ -89,7 +89,7 @@ let%bistro merge_eff_counts ~sample_ids ~kallisto_outputs =
   Out_channel.write_lines [%dest] lines
 
 
-let%bistro merge_tpms ~sample_ids ~kallisto_outputs =
+let%pworkflow merge_tpms ~sample_ids ~kallisto_outputs =
 
   let parse_tpms fn =
     In_channel.read_lines fn
@@ -108,8 +108,8 @@ let%bistro merge_tpms ~sample_ids ~kallisto_outputs =
       )
   in
 
-  let names = parse_names (List.hd_exn [%deps kallisto_outputs]) in
-  let tpms  = List.map [%deps kallisto_outputs] ~f:parse_tpms in
+  let names = parse_names [%eval Workflow.eval_path (List.hd_exn kallisto_outputs)] in
+  let tpms  = List.map [%eval Workflow.(spawn (list kallisto_outputs) ~f:eval_path)] ~f:parse_tpms in
 
   let table = List.transpose_exn (names :: tpms) in
 

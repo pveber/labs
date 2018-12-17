@@ -2,20 +2,20 @@ open Core_kernel
 open Bistro
 open Bistro_bioinfo
 
-let%bistro[@version 2] bamstats (bam : bam workflow) =
+let%pworkflow[@version 2] bamstats (bam : bam pworkflow) =
   let open Biocaml_ez in
   let open CFStream in
-  Bam.with_file [%dep bam] ~f:(fun _ als ->
+  Bam.with_file [%path bam] ~f:(fun _ als ->
       Stream.fold als ~init:Bamstats.zero ~f:Bamstats.update
     )
   |> Bamstats.sexp_of_t
   |> Sexp.to_string_hum
   |> fun data -> Out_channel.write_all [%dest] ~data
 
-let%bistro fragment_length_stats (bam : bam workflow) =
+let%pworkflow fragment_length_stats (bam : bam pworkflow) =
   let open Biocaml_ez in
   let open CFStream in
-  Bam.with_file0 [%dep bam] ~f:Bamstats.Fragment_length_histogram.(fun _ als ->
+  Bam.with_file0 [%path bam] ~f:Bamstats.Fragment_length_histogram.(fun _ als ->
       let h = create ~min_mapq:5 () in
       Stream.iter als ~f:(fun al -> ok_exn (update0 h al)) ;
       Biocaml_unix.Accu.Counter.to_alist h.counts
@@ -24,10 +24,10 @@ let%bistro fragment_length_stats (bam : bam workflow) =
   |> Sexp.to_string_hum
   |> fun data -> Out_channel.write_all [%dest] ~data
 
-let%bistro chrstats (bam : bam workflow) =
+let%pworkflow chrstats (bam : bam pworkflow) =
   let open Biocaml_ez in
   let open CFStream in
-  Bam.with_file0 [%dep bam] ~f:Bamstats.Chr_histogram.(fun header als ->
+  Bam.with_file0 [%path bam] ~f:Bamstats.Chr_histogram.(fun header als ->
       let h = create ~min_mapq:5 header in
       Stream.iter als ~f:(fun al -> ok_exn (update0 h al)) ;
       Biocaml_unix.Accu.Counter.to_alist h.counts
@@ -36,17 +36,17 @@ let%bistro chrstats (bam : bam workflow) =
   |> Sexp.to_string_hum
   |> fun data -> Out_channel.write_all [%dest] ~data
 
-let%bistro summary samples bamstats chrstats =
+let%pworkflow summary samples bamstats chrstats =
   let open Biocaml_ez in
   let open Tyxml_html in
-  let k = pcdata in
-  let stats = List.map [%deps bamstats] ~f:(fun fn ->
+  let k = txt in
+  let stats = List.map [%eval Workflow.(spawn (list bamstats) ~f:eval_path)] ~f:(fun fn ->
       In_channel.read_all fn
       |> Sexp.of_string
       |> Bamstats.t_of_sexp
     )
   in
-  let chrstats = match [%deps chrstats] with
+  let chrstats = match [%eval Workflow.(spawn (list chrstats) ~f:eval_path)] with
     | [] -> None
     | xs ->
       Some (
@@ -76,7 +76,7 @@ let%bistro summary samples bamstats chrstats =
         let n = List.fold stats ~init:0 ~f:(fun acc (_, n) -> acc + n) in
         let cols = List.map stats ~f:(fun (_, k) ->
             let p = Float.(of_int k / of_int n *. 100.) in
-            td [ pcdata (sprintf "%.1f%%" p) ] ;
+            td [ txt (sprintf "%.1f%%" p) ] ;
           )
         in
         tr (td [ k sample ] :: cols)
@@ -90,7 +90,7 @@ let%bistro summary samples bamstats chrstats =
         if n <= 0 then 0.
         else Float.(of_int k / of_int n * 100.)
       in
-      pcdata (sprintf "%d (%.1f%%)" k f)
+      txt (sprintf "%d (%.1f%%)" k f)
     in
     let header =
       thead [
@@ -124,7 +124,7 @@ let%bistro summary samples bamstats chrstats =
   let contents = [
     flagstat_table samples stats ;
     br () ;
-    Option.value_map chrstats ~default:(pcdata "") ~f:(chrstat_table samples) ;
+    Option.value_map chrstats ~default:(txt "") ~f:(chrstat_table samples) ;
   ]
   in
   Labs_croquis.Html_page.(

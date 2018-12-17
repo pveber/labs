@@ -16,10 +16,10 @@ val idr :
   ?soft_idr_threshold:float ->
   ?peak_merge_method:[ `sum | `avg | `min | `max] ->
   ?random_seed:int ->
-  ?peak_list:'a workflow ->
-  'a workflow ->
-  'a workflow ->
-  'a output directory workflow
+  ?peak_list:'a pworkflow ->
+  'a pworkflow ->
+  'a pworkflow ->
+  'a output dworkflow
 
-val items : ('a output, 'a) selector
-val figure : (_ output, png) selector
+val items : 'a output dworkflow -> 'a pworkflow
+val figure : _ output dworkflow -> png pworkflow

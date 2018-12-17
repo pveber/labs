@@ -1,8 +1,5 @@
-(jbuild_version 1)
-
 (library
- ((name labs_minimcmc)
-  (public_name labs.minimcmc)
-  (libraries (base))
-  (preprocess (pps (ppx_let)))
-))
+ (name labs_minimcmc)
+ (public_name labs.minimcmc)
+ (libraries base)
+ (preprocess (pps ppx_let)))

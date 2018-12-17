@@ -1,9 +1,6 @@
-(jbuild_version 1)
-
 (library
- ((name labs_bistro)
-  (public_name labs.bistro)
-  (libraries (biocaml.base biocaml.ez bistro.bioinfo bistro.utils labs.biopipes labs.croquis))
-  (flags (:standard -unsafe-string))
-  (preprocess (pps (ppx_let ppx_sexp_conv bistro.ppx)))
-))
+ (name labs_bistro)
+ (public_name labs.bistro)
+ (libraries biocaml.base biocaml.ez bistro.bioinfo bistro.utils labs.biopipes labs.croquis)
+ (flags :standard -unsafe-string)
+ (preprocess (pps ppx_let ppx_sexp_conv bistro.ppx)))

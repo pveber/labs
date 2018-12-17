@@ -1,7 +1,4 @@
-(jbuild_version 1)
-
 (library
- ((name labs_biopipes)
-  (public_name labs.biopipes)
-  (libraries (biocaml.base labs.biostuff pipes.parsers pipes.unix))
-))
+ (name labs_biopipes)
+ (public_name labs.biopipes)
+ (libraries biocaml.base labs.biostuff pipes.parsers pipes.unix))

@@ -25,6 +25,11 @@ type arrow_style = [
   | `triangle
 ]
 
+type thickness = [
+  | `normal
+  | `thick
+]
+
 val path :
   ?vp:Viewport.t ->
   ?col:Color.t ->
@@ -34,9 +39,15 @@ val path :
     start : v2 ;
     _end_ : v2 >
 
+val rectangle :
+  ?col:Color.t ->
+  ?thickness:thickness ->
+  center:v2 ->
+  size:v2 ->
+  unit ->
+  t
+
 val venn_diagram2 :
-  ?a_label:string ->
-  ?b_label:string ->
   compare:('a -> 'a -> int) ->
   a:'a list ->
   b:'a list ->

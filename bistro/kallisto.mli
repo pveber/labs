@@ -15,27 +15,27 @@ class type abundance_table = object
   method f5 : [`tpm] * float
 end
 
-val env : docker_image
-val index : fasta workflow list -> index workflow
+val env : Shell_dsl.docker_image
+val index : fasta pworkflow list -> index pworkflow
 val quant :
   ?bootstrap_samples:int ->
   ?threads:int ->
   ?fragment_length:float ->
   ?sd:float ->
-  index workflow ->
-  fq1:[`fq of 'a fastq workflow | `fq_gz of 'a fastq gz workflow] ->
-  ?fq2:[`fq of 'a fastq workflow | `fq_gz of 'a fastq gz workflow] ->
+  index pworkflow ->
+  fq1:[`fq of sanger_fastq pworkflow | `fq_gz of sanger_fastq gz pworkflow] ->
+  ?fq2:[`fq of sanger_fastq pworkflow | `fq_gz of sanger_fastq gz pworkflow] ->
   unit ->
-  [`kallisto_output] directory workflow
+  [`kallisto_output] dworkflow
 
-val abundance : ([`kallisto_output], abundance_table) selector
+val abundance : [`kallisto_output] dworkflow -> abundance_table pworkflow
 
 val merge_eff_counts :
   sample_ids:string list ->
-  kallisto_outputs:abundance_table workflow list ->
-  tsv workflow
+  kallisto_outputs:abundance_table pworkflow list ->
+  tsv pworkflow
 
 val merge_tpms :
   sample_ids:string list ->
-  kallisto_outputs:abundance_table workflow list ->
-  tsv workflow
+  kallisto_outputs:abundance_table pworkflow list ->
+  tsv pworkflow

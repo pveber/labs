@@ -1,9 +1,7 @@
 open Bistro
 open Bistro_bioinfo
 
-val env : docker_image
-
-type index = [`hisat2_index] directory
+val env : Shell_dsl.docker_image
 
 val hisat2_build :
   ?large_index:bool ->
@@ -19,8 +17,8 @@ val hisat2_build :
   ?ftabchars:int ->
   ?seed:int ->
   ?cutoff:int ->
-  fasta workflow ->
-  index workflow
+  fasta pworkflow ->
+  [`hisat2_index] dworkflow
 
 
 val hisat2 :
@@ -36,7 +34,7 @@ val hisat2 :
   ?no_mixed:bool ->
   ?no_discordant:bool ->
   ?seed:int ->
-  index workflow ->
-  [ `single_end of 'a fastq workflow list
-  | `paired_end of 'a fastq workflow list * 'a fastq workflow list ] ->
-  sam workflow
+  [`hisat2_index] dworkflow ->
+  [ `single_end of sanger_fastq pworkflow list
+  | `paired_end of sanger_fastq pworkflow list * sanger_fastq pworkflow list ] ->
+  sam pworkflow

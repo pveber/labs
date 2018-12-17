@@ -9,7 +9,7 @@ let markduplicates ?remove_duplicates indexed_bam =
   let arg k v =
     seq ~sep:"" [ string k ; string "=" ; v ]
   in
-  shell ~descr:"picard.markduplicates" ~mem:(3 * 1024) [
+  Workflow.shell ~descr:"picard.markduplicates" ~mem:(Workflow.int (3 * 1024)) [
     mkdir_p dest ;
     cmd "PicardCommandLine" ~env:docker_image [
       string "MarkDuplicates" ;
@@ -22,4 +22,4 @@ let markduplicates ?remove_duplicates indexed_bam =
     ]
   ]
 
-let reads = selector ["reads.bam"]
+let reads x = Workflow.select x ["reads.bam"]

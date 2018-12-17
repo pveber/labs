@@ -1,7 +1,4 @@
-(jbuild_version 1)
-
 (library
- ((name labs_croquis)
-  (public_name labs.croquis)
-  (libraries (base64 core_kernel tyxml vg.cairo vg.pdf))
-))
+ (name labs_croquis)
+ (public_name labs.croquis)
+ (libraries base64 core_kernel tyxml vg.cairo vg.pdf))
