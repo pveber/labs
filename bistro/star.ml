@@ -34,6 +34,7 @@ let alignReads ?(max_mem = `GB 8)
     ?outFilterMismatchNmax
     ?outFilterMultimapNmax
     ?outSAMstrandField
+    ?alignIntronMax
     idx fqs =
   let `GB max_mem = max_mem in
   Workflow.shell ~descr:"star.map" ~np:8 ~mem:(Workflow.int (max_mem * 1024)) [
@@ -49,6 +50,7 @@ let alignReads ?(max_mem = `GB 8)
       opt "--outSAMunmapped" string "None" ;
       opt "--outStd" string "SAM" ;
       opt "--genomeLoad" string "NoSharedMemory" ;
+      option (opt "--alignIntronMax" int) alignIntronMax ;
       (* opt "--limitBAMsortRAM" ident mem_in_bytes ; *)
     ]
   ]
