@@ -8,6 +8,7 @@ val alignReads :
   ?outFilterMismatchNmax:int ->
   ?outFilterMultimapNmax:int ->
   ?outSAMstrandField:[`None | `intronMotif] ->
+  ?alignIntronMax:int ->
   [`star_index] dworkflow ->
   [ `single_end of sanger_fastq pworkflow
   | `paired_end of sanger_fastq pworkflow * sanger_fastq pworkflow ] ->
