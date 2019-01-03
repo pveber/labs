@@ -2,8 +2,7 @@ open Bistro
 open Bistro_bioinfo
 open Shell_dsl
 
-let docker_image =
-  docker_image ~account:"pveber" ~name:"picard-tools" ~tag:"2.8.1" ()
+let img = [ docker_image ~account:"pveber" ~name:"picard-tools" ~tag:"2.8.1" () ]
 
 let markduplicates ?remove_duplicates indexed_bam =
   let arg k v =
@@ -11,7 +10,7 @@ let markduplicates ?remove_duplicates indexed_bam =
   in
   Workflow.shell ~descr:"picard.markduplicates" ~mem:(Workflow.int (3 * 1024)) [
     mkdir_p dest ;
-    cmd "PicardCommandLine" ~env:docker_image [
+    cmd "PicardCommandLine" ~img [
       string "MarkDuplicates" ;
       arg "INPUT" (dep @@ Samtools.indexed_bam_to_bam indexed_bam) ;
       arg "OUTPUT" (dest // "reads.bam") ;

@@ -27,6 +27,6 @@ val workflow :
   ?descr:string ->
   ?np:int ->
   ?mem:int workflow ->
-  ?env:Shell_dsl.docker_image ->
+  ?img:Shell_dsl.container_image list ->
   expr list ->
   'a pworkflow

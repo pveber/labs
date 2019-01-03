@@ -2,14 +2,14 @@ open Core
 open Bistro
 open Shell_dsl
 
-let env = docker_image ~account:"flemoine" ~name:"star" ()
+let img = [ docker_image ~account:"flemoine" ~name:"star" () ]
 
 let mem_in_bytes = seq ~sep:" " [string "$((" ; mem ; string " * 1024 * 1024))$"]
 
 let genomeGenerate fa =
   Workflow.shell ~descr:"star.index" ~np:8 ~mem:(Workflow.int (30 * 1024)) [
     mkdir_p dest ;
-    cmd "STAR" ~env [
+    cmd "STAR" ~img [
       opt "--runThreadN" ident np ;
       opt "--runMode" string "genomeGenerate" ;
       opt "--genomeDir" ident dest ;
@@ -39,7 +39,7 @@ let alignReads ?(max_mem = `GB 8)
   let `GB max_mem = max_mem in
   Workflow.shell ~descr:"star.map" ~np:8 ~mem:(Workflow.int (max_mem * 1024)) [
     mkdir_p dest ;
-    cmd "STAR" ~stdout:(dest // "sorted.bam") ~env [
+    cmd "STAR" ~stdout:(dest // "sorted.bam") ~img [
       opt "--outFileNamePrefix" ident (dest // "star") ;
       opt "--runThreadN" ident np ;
       option (opt "--outSAMstrandField" samStrandField) outSAMstrandField ;

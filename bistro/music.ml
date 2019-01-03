@@ -1,7 +1,7 @@
 open Bistro
 open Shell_dsl
 
-let env = docker_image ~account:"pveber" ~name:"music" ~tag:"6613c5" ()
+let img = [ docker_image ~account:"pveber" ~name:"music" ~tag:"6613c5" () ]
 
 let prepare x label =
   [
@@ -31,7 +31,7 @@ let _run ~mappability ~l_mapp ~begin_l ~end_l ~step ~treatment ~control =
     mkdir_p dest ;
     and_list [
       cd dest ;
-      cmd "MUSIC" ~env [
+      cmd "MUSIC" ~img [
         string "-get_multiscale_broad_ERs" ;
         string "-chip" ; tmp // "treatment" // "dedup" ;
         string "-control" ; tmp // "control" // "dedup" ;

@@ -2,7 +2,7 @@ open Bistro
 open Bistro_bioinfo
 open Shell_dsl
 
-let env = docker_image ~account:"pveber" ~name:"art" ~tag:"20160605" ()
+let img = [ docker_image ~account:"pveber" ~name:"art" ~tag:"20160605" () ]
 
 let depth_option = function
   | `Read_count i -> opt "--rcount" int i
@@ -71,7 +71,7 @@ let art_illumina
   =
   Workflow.shell ~descr:"art_illumina" [
     mkdir_p dest ;
-    cmd "art_illumina" ~env [
+    cmd "art_illumina" ~img [
       option (opt "--qprof1" string) qprof1 ;
       option (opt "--qprof2" string) qprof2 ;
       option (flag string "--amplicon") amplicon ;

@@ -15,7 +15,7 @@ class type abundance_table = object
   method f5 : [`tpm] * float
 end
 
-val env : Shell_dsl.docker_image
+val img : Shell_dsl.container_image list
 val index : fasta pworkflow list -> index pworkflow
 val quant :
   ?bootstrap_samples:int ->

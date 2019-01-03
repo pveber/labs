@@ -1,7 +1,7 @@
 open Bistro
 open Bistro_bioinfo
 
-val env : Shell_dsl.docker_image
+val img : Shell_dsl.container_image list
 
 val hisat2_build :
   ?large_index:bool ->

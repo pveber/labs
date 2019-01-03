@@ -1,7 +1,7 @@
 open Bistro
 open Bistro_bioinfo
 
-val docker_image : Shell_dsl.docker_image
+val img : Shell_dsl.container_image list
 
 val markduplicates :
   ?remove_duplicates:bool ->

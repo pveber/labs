@@ -26,7 +26,7 @@ let string_of_merge_method = function
 
 let merge_method x = string (string_of_merge_method x)
 
-let env = docker_image ~account:"pveber" ~name:"idr" ~tag:"2.0.3" ()
+let img = [ docker_image ~account:"pveber" ~name:"idr" ~tag:"2.0.3" () ]
 
 let idr
     ~input_file_type ?idr_threshold ?soft_idr_threshold
@@ -34,7 +34,7 @@ let idr
     sample1 sample2 =
   Workflow.shell ~descr:"Idr.idr" [
     mkdir_p dest ;
-    cmd "idr" ~env [
+    cmd "idr" ~img [
       opt "--input-file-type" file_format input_file_type ;
       opt "--output-file" (fun x -> x) (dest // "items.tsv") ;
       option (opt "--idr-threshold" float) idr_threshold ;

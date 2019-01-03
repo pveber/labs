@@ -16,11 +16,11 @@ class type abundance_table = object
   method f5 : [`tpm] * float
 end
 
-let env = docker_image ~account:"pveber" ~name:"kallisto" ~tag:"0.43.0" ()
+let img = [ docker_image ~account:"pveber" ~name:"kallisto" ~tag:"0.43.0" () ]
 
 let index fas =
   Workflow.shell ~descr:"kallisto-index" [
-    cmd "kallisto index" ~env [
+    cmd "kallisto index" ~img [
       opt "-i" ident dest ;
       list ~sep:" " dep fas ;
     ]
@@ -36,7 +36,7 @@ let fq_input = function
 
 let quant ?bootstrap_samples ?threads ?fragment_length ?sd idx ~fq1 ?fq2 () =
   Workflow.shell ~descr:"kallisto-quant" ?np:threads [
-    cmd "kallisto quant" ~env [
+    cmd "kallisto quant" ~img [
       opt "-i" dep idx ;
       opt "-o" ident dest ;
       opt "-t" ident np ;

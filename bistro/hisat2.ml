@@ -3,12 +3,12 @@ open Bistro
 open Bistro_bioinfo
 open Shell_dsl
 
-let env = docker_image ~account:"pveber" ~name:"hisat2" ~tag:"2.1.0" ()
+let img = [ docker_image ~account:"pveber" ~name:"hisat2" ~tag:"2.1.0" () ]
 
 let hisat2_build ?large_index ?noauto ?packed ?bmax ?bmaxdivn ?dcv ?nodc ?noref ?justref ?offrate ?ftabchars ?seed ?cutoff fa =
   Workflow.shell ~descr:"hisat2-build" ~mem:(Workflow.int (8 * 1024)) ~np:8 [
     mkdir_p dest ;
-    cmd "hisat2-build" ~env [
+    cmd "hisat2-build" ~img [
       option (flag string "--large-index") large_index ;
       option (flag string "--no-auto") noauto ;
       option (flag string "--packed") packed ;
@@ -57,7 +57,7 @@ let hisat2
       ]
   in
   Workflow.shell ~descr:"hisat2" ~mem:(Workflow.int (4 * 1024)) ~np:8 [
-    cmd "hisat2" ~env [
+    cmd "hisat2" ~img [
       option (opt "--skip" int) skip ;
       option (opt "--qupto" int) qupto ;
       option (opt "--trim5" int) trim5 ;
