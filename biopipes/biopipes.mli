@@ -1,5 +1,5 @@
 open Biocaml_base
-open Labs_biostuff
+open Gzt
 include module type of Pipes_unix.Pipe
 (* open Pipes_parser *)
 

@@ -1,6 +1,6 @@
 open Base
 open Biocaml_base
-open Labs_biostuff
+open Gzt
 include Pipes_unix.Pipe
 
 let ( %% ) f g = Fn.(flip compose) f g
