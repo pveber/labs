@@ -1,10 +1,13 @@
 open Bistro
 open Bistro_engine
 
+let np = ref 8
+let mem = ref 8
+
 let with_workflow w ~f =
   let open Scheduler in
   let db = Db.init_exn "_bistro" in
-  let sched = create ~np:8 ~mem:(`GB 8) db in
+  let sched = create ~np:!np ~mem:(`GB !mem) db in
   let thread = eval_exn sched w in
   start sched ;
   Lwt_main.run thread
