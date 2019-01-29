@@ -7,11 +7,14 @@ let mem = ref 8
 let with_workflow w ~f =
   let open Scheduler in
   let db = Db.init_exn "_bistro" in
-  let sched = create ~np:!np ~mem:(`GB !mem) db in
+  let loggers = [ Bistro_utils.Console_logger.create () ] in
+  let sched = create ~np:!np ~mem:(`GB !mem) ~loggers db in
   let thread = eval_exn sched w in
   start sched ;
   Lwt_main.run thread
   |> f
+
+let eval w = with_workflow w ~f:(fun x -> x)
 
 let with_pworkflow w ~f = with_workflow (Workflow.eval_path w) ~f
 
