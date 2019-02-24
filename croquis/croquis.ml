@@ -2,6 +2,11 @@ open Core_kernel
 open Gg
 open Vg
 
+let default_font =
+  match Vg_text.Font.load_from_string Linux_libertine.regular with
+  | Ok font -> font
+  | _ -> assert false
+
 module Viewport = struct
   type t = {
     scale_x : float -> float ;
@@ -94,23 +99,13 @@ let stack xs =
       List.fold xs ~init:Box2.empty ~f:(fun acc x -> Box2.union acc x#bbox)
   end
 
-let text ?(pos = V2.zero) txt =
+let text ?(pos = V2.zero) ?(font = default_font) txt =
   let font_size = 0.3 in
-  let font = {
-    Font.name = "Helvetica" ;
-    slant = `Normal ;
-    weight = `W400 ;
-    size = font_size ;
-  }
-  in
-  let w = Font_utils.text_width font_size txt in
+  let w = Vg_text.text_length font ~font_size txt in
   object
     method image =
-      let glyphs =
-        String.fold txt ~init:[] ~f:(fun acc c -> Char.to_int c :: acc)
-        |> List.rev
-      in
-      I.cut_glyphs font glyphs (I.const Color.black)
+      Vg_text.cut font txt ~col:Color.black
+      |> fst
       |> I.move (V2.v (-. w /. 2.) 0.)
       |> I.move pos
     method bbox = Box2.v_mid pos (V2.v w 1.) (* FIXME *)
