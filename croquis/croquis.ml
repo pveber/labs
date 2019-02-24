@@ -59,7 +59,7 @@ let circle ?(col = Color.black) ?(thickness = `normal) ~center ~radius () =
       Box2.v_mid center (V2.v r r)
   end
 
-let rectangle ?(col = Color.black) ?(thickness = `normal) ~center ~size () =
+let rectangle ?(vp = Viewport.id) ?(col = Color.black) ?(thickness = `normal) ~center ~size () =
   let dx = V2.x size /. 2. in
   let dy = V2.y size /. 2. in
   let sw = V2.add center (V2.v (-. dx) (-. dy)) in
@@ -70,12 +70,21 @@ let rectangle ?(col = Color.black) ?(thickness = `normal) ~center ~size () =
     method image =
       let area = `O { P.o with P.width = thickness_value thickness } in
       let p =
-        P.empty |> P.sub sw |> P.line nw
-        |> P.line ne |> P.line se |> P.line sw
+        P.empty
+        |> P.sub (Viewport.scale vp sw)
+        |> P.line (Viewport.scale vp nw)
+        |> P.line (Viewport.scale vp ne)
+        |> P.line (Viewport.scale vp se)
+        |> P.line (Viewport.scale vp sw)
       in
       I.cut ~area p (I.const col)
     method bbox = Box2.of_pts sw ne
   end
+
+let rectangle' ?vp ?col ?thickness ~xmin ~xmax ~ymin ~ymax () =
+  let center = V2.v ((xmax +. xmin) /. 2.) ((ymax +. ymin) /. 2.) in
+  let size = V2.v (xmax -. xmin) (ymax -. ymin) in
+  rectangle ?vp ?col ?thickness ~center ~size ()
 
 let stack xs =
   object

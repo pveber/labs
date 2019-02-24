@@ -40,10 +40,22 @@ val path :
     _end_ : v2 >
 
 val rectangle :
+  ?vp:Viewport.t ->
   ?col:Color.t ->
   ?thickness:thickness ->
   center:v2 ->
   size:v2 ->
+  unit ->
+  t
+
+val rectangle' :
+  ?vp:Viewport.t ->
+  ?col:Color.t ->
+  ?thickness:thickness ->
+  xmin:float ->
+  xmax:float ->
+  ymin:float ->
+  ymax:float ->
   unit ->
   t
 
