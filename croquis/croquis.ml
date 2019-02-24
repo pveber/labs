@@ -83,7 +83,7 @@ let rectangle ?(vp = Viewport.id) ?(col = Color.black) ?(thickness = `normal) ~c
         |> P.line (Viewport.scale vp sw)
       in
       I.cut ~area p (I.const col)
-    method bbox = Box2.of_pts sw ne
+    method bbox = Box2.of_pts (Viewport.scale vp sw) (Viewport.scale vp ne)
   end
 
 let rectangle' ?vp ?col ?thickness ~xmin ~xmax ~ymin ~ymax () =
