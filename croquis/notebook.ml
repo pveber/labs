@@ -18,7 +18,7 @@ let section s = H2 s
 
 let read_picture fn =
   In_channel.read_all fn
-  |> B64.encode
+  |> Base64.encode_exn
 
 let saveplot format f =
   let tmp = Filename.temp_file "temp" ".svg" in
