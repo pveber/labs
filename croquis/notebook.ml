@@ -21,7 +21,7 @@ let read_picture fn =
   |> Base64.encode_exn
 
 let saveplot format f =
-  let tmp = Filename.temp_file "temp" ".svg" in
+  let tmp = Caml.Filename.temp_file "temp" ".svg" in
   let contents =
     protect
       ~f:(fun () ->

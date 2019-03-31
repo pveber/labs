@@ -2,8 +2,3 @@
  (name labs_croquis)
  (public_name labs.croquis)
  (libraries base64 core_kernel tyxml vg.cairo vg.pdf vg_text))
-
-(rule
-  (targets linux_libertine.ml)
-  (action (run bash ocamlify_font.sh))
-  (deps (file ocamlify_font.sh) (file LinLibertine_R.otf)))
